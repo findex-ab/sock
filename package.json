@@ -1,0 +1,50 @@
+{
+  "name": "sock",
+  "version": "1.0.0",
+  "description": "",
+  "exports": {
+   "./server": {
+      "import": {
+        "types": "./server/dist/index.d.ts",
+        "default": "./server/dist/index.js"
+      },
+      "require": {
+        "types": "./server/dist/index.d.ts",
+        "default": "./server/dist/index.js"
+      }
+    },
+    "./shared": {
+      "import": {
+        "types": "./shared/dist/src/index.d.ts",
+        "default": "./shared/dist/index.js"
+      },
+      "require": {
+        "types": "./shared/dist/src/index.d.ts",
+        "default": "./shared/dist/index.js"
+      }
+    },
+    "./web": {
+      "import": {
+        "types": "./web/dist/index.d.ts",
+        "default": "./web/dist/index.js"
+      },
+      "require": {
+        "types": "./web/dist/index.d.ts",
+        "default": "./web/dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "test:server": "cd test && npx tsx src/server.ts",
+    "test:client": "cd test && npx tsx src/client.ts",
+    "build": "npm run build -ws",
+    "clear": "rm -rf server/dist; rm -rf shared/dist; rm -rf web/dist; rm -rf web/build; rm -rf shared/build; rm -rf server/build"
+  },
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "shared",
+    "server",
+    "web"
+  ]
+}

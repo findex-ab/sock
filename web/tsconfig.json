@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "target": "esnext",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "paths": {
+      "#/shared/*": ["../shared/src/*"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["../shared/src/*"],
+  "references": [{ "path": "../shared" }]
+}
