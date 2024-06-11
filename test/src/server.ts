@@ -5,7 +5,7 @@ import { server } from '#/server/server';
 const main = async () => {
   server<{ token: string }>({
     socket: {
-      port: 6000,
+      port: 10113,
       host: 'localhost'
     },
     authenticate:  async (client, event) => {
@@ -20,10 +20,13 @@ const main = async () => {
           onEvent: (client, event) => {
             console.log(`Hello from test!`);
 
-            setTimeout(() => {
+            const inter = setInterval(() => {
               const session = ctx.getSession(client);
               if (session) {
                 session.setState((s) => ({...s, counter: s.counter + 1}));
+              } else {
+                console.log('stopped interval');
+                clearInterval(inter);
               }
             }, 1000);
           }
