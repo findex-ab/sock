@@ -3,6 +3,7 @@ import { Dict } from "./types";
 export enum ESockEvent {
   PING = 'PING',
   AUTH = 'AUTH',
+  CLOSE = 'CLOSE',
   STATE_UPDATE = "STATE_UPDATE",
   SUBSCRIBE = "SUBSCRIBE",
   SUBSCRIBE_APP = "SUBSCRIBE_APP",
