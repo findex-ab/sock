@@ -1,6 +1,7 @@
 import { Dict } from "./types";
 
 export enum ESockEvent {
+  PING = 'PING',
   AUTH = 'AUTH',
   STATE_UPDATE = "STATE_UPDATE",
   SUBSCRIBE = "SUBSCRIBE",
@@ -11,6 +12,8 @@ export enum ESockEvent {
 export type SockEvent<T extends Dict = Dict> = {
   type: string;
   app?: string;
+  receiverId?: string;
+  senderId?: string;
   payload: T;
 }
 
@@ -26,4 +29,10 @@ export const isSockEvent = <T extends Dict = Dict>(x: any): x is SockEvent<T> =>
   if (!x) return false;
   if (typeof x !== 'object') return false;
   return (typeof x.type === 'string' && typeof x.payload === 'object');
+}
+
+export const parseEvent = <T extends Dict = Dict>(data: { toString: () => string }): SockEvent<T> => {
+  const parsed = JSON.parse(data.toString());
+  if (!isSockEvent<T>(parsed)) throw new Error(`Malformed event`);
+  return parsed;
 }
