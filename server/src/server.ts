@@ -16,6 +16,7 @@ export type ServerConfig = {
   authenticate: (
     event: SockEvent<any>,
   ) => Promise<SockClientAuth | null | undefined>;
+  onClientClose?: (client: ISocket) => (void | Promise<void>);
   apps?: Record<string, SockAppInternal>;
 };
 
@@ -256,7 +257,6 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
       console.error("Not authenticated");
       return;
     }
-    console.log({ auth });
     client.id = auth.id;
     client.auth = auth;
 
@@ -271,6 +271,13 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
     });
 
     sock.on("close", async () => {
+      if (config.onClientClose) {
+        try {
+          await config.onClientClose(client);
+        } catch (e) {
+          console.error(e);
+        }
+      }
       await safely(async () => removeClient(client));
     });
 

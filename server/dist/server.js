@@ -3720,6 +3720,7 @@ var parseEvent = (data) => {
 // src/socket/index.ts
 var Socket = class {
   socket;
+  connectedAt;
   id;
   auth;
   apps;
@@ -3734,6 +3735,12 @@ var Socket = class {
     this.id = id;
     this.apps = [];
     this.transactions = {};
+    this.connectedAt = /* @__PURE__ */ new Date();
+  }
+  getTimeAliveSeconds() {
+    const now = (/* @__PURE__ */ new Date()).getTime() / 1e3;
+    const connectedAt = this.connectedAt.getTime() / 1e3;
+    return now - connectedAt;
   }
   beginTransaction(event) {
     this.transaction = void 0;
@@ -3761,14 +3768,16 @@ var Socket = class {
     if (!transaction) throw new Error(`No current transaction`);
     const start = transaction.start;
     if (!start) throw new Error(`Found transaction but missing start event`);
+    const totalSize = start.totalSize ?? 0;
     transaction.packets = transaction.packets || [];
     transaction.packets = [...transaction.packets, { data }];
     transaction.size += data.length;
     this.transaction = transaction;
     this.send({
       type: "TRANSFER_RECEIVED" /* TRANSFER_RECEIVED */,
+      app: start.app,
       payload: {
-        progress: start.totalSize / transaction.size
+        progress: transaction.size / Math.max(1, totalSize)
       }
     });
   }
@@ -4009,7 +4018,6 @@ var server = async (config) => {
       console.error("Not authenticated");
       return;
     }
-    console.log({ auth });
     client.id = auth.id;
     client.auth = auth;
     await safely(async () => insertClient(client));
@@ -4021,6 +4029,13 @@ var server = async (config) => {
       }
     });
     sock.on("close", async () => {
+      if (config.onClientClose) {
+        try {
+          await config.onClientClose(client);
+        } catch (e) {
+          console.error(e);
+        }
+      }
       await safely(async () => removeClient(client));
     });
     sock.on("message", async (msg, isBinary) => {

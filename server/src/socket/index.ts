@@ -7,6 +7,7 @@ import { SockTransaction } from "../transaction";
 
 export class Socket {
   socket: WebSocket;
+  connectedAt: Date;
   id: string;
   auth?: SockClientAuth;
   apps: string[];
@@ -22,6 +23,13 @@ export class Socket {
     this.id = id;
     this.apps = [];
     this.transactions = {};
+    this.connectedAt = new Date();
+  }
+
+  getTimeAliveSeconds() {
+    const now = (new Date()).getTime() / 1000;
+    const connectedAt = this.connectedAt.getTime() / 1000;
+    return now - connectedAt;
   }
 
   beginTransaction(event: SockEvent) {
@@ -52,14 +60,16 @@ export class Socket {
     if (!transaction) throw new Error(`No current transaction`);
     const start = transaction.start;
     if (!start) throw new Error(`Found transaction but missing start event`);
+    const totalSize = start.totalSize ?? 0;
     transaction.packets = transaction.packets || [];
     transaction.packets = [...transaction.packets, { data: data }];
     transaction.size += data.length;
     this.transaction = transaction;
     this.send({
       type: ESockEvent.TRANSFER_RECEIVED,
+      app: start.app,
       payload: {
-        progress: start.totalSize / transaction.size
+        progress: transaction.size / Math.max(1, totalSize)
       },
     })
   }

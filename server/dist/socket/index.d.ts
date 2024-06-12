@@ -4,12 +4,14 @@ import { SockClientAuth } from "../auth";
 import { SockTransaction } from "../transaction";
 export declare class Socket {
     socket: WebSocket;
+    connectedAt: Date;
     id: string;
     auth?: SockClientAuth;
     apps: string[];
     transactions: Record<string, SockTransaction>;
     transaction?: SockTransaction;
     constructor(socket: WebSocket | string, id: string);
+    getTimeAliveSeconds(): number;
     beginTransaction(event: SockEvent): void;
     endTransaction(event: SockEvent): void;
     transfer(data: Uint8Array): void;
