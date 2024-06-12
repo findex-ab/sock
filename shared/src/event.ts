@@ -2,6 +2,7 @@ import { Dict } from "./types";
 
 export enum ESockEvent {
   PING = 'PING',
+  PONG = 'PONG',
   AUTH = 'AUTH',
   CLOSE = 'CLOSE',
   BEGIN_TRANSACTION = 'BEGIN_TRANSACTION',

@@ -26,6 +26,7 @@ __export(event_exports, {
 module.exports = __toCommonJS(event_exports);
 var ESockEvent = /* @__PURE__ */ ((ESockEvent2) => {
   ESockEvent2["PING"] = "PING";
+  ESockEvent2["PONG"] = "PONG";
   ESockEvent2["AUTH"] = "AUTH";
   ESockEvent2["CLOSE"] = "CLOSE";
   ESockEvent2["BEGIN_TRANSACTION"] = "BEGIN_TRANSACTION";

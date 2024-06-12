@@ -1,6 +1,6 @@
 import { ServerSocketConfig, serverSocket } from "./serverSocket";
 import { SubscriptionProxy, proxy, subscriptionProxy } from "../../shared/src/proxy";
-import WebSocket, { RawData } from "ws";
+import WebSocket, { RawData, WebSocketServer } from "ws";
 import { ESockEvent, SockEvent, isSockEvent } from "../../shared/src/event";
 import { Dict } from "../../shared/src/types/dict";
 import { SockClientAuth } from "./auth";
@@ -10,6 +10,9 @@ import { ISocket, Socket } from "./socket";
 import { SockApp, SockAppInternal } from "./app";
 import { SetStateFun, UseStateOptions } from "./state";
 import { SockCompleteTransaction, SockTransaction } from "./transaction";
+import { serverTick } from "./tick";
+
+const DEFAULT_TICK_RATE = 1000 * 10;
 
 export type ServerConfig = {
   socket: ServerSocketConfig;
@@ -18,6 +21,7 @@ export type ServerConfig = {
   ) => Promise<SockClientAuth | null | undefined>;
   onClientClose?: (client: ISocket) => (void | Promise<void>);
   apps?: Record<string, SockAppInternal>;
+  tickRate?: number;
 };
 
 export type ServerState = {
@@ -27,6 +31,8 @@ export type ServerState = {
 
 export type SockServer = {
   close: () => void;
+  socket: InstanceType<typeof WebSocketServer>;
+  state: ServerState;
 };
 
 const safely = async (fun: () => Promise<any>) => {
@@ -37,7 +43,7 @@ const safely = async (fun: () => Promise<any>) => {
   }
 };
 
-export const server = async <AuthenticationEventType extends Dict = Dict>(
+const createServer = async <AuthenticationEventType extends Dict = Dict>(
   config: ServerConfig,
 ): Promise<SockServer> => {
   const socket = serverSocket(config.socket);
@@ -294,19 +300,28 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
       }
     });
 
-    sock.on("ping", async () => {
-      await safely(async () =>
-        onEvent(client, {
-          type: ESockEvent.PING,
-          payload: {},
-        }),
-      );
-    });
+    //sock.on("ping", async () => {});
+    //sock.on('pong', async () => {});
   });
 
   const close = () => {
     socket.close();
   };
 
-  return { close };
+  return { socket, close, state };
 };
+export const server = async <AuthenticationEventType extends Dict = Dict>(
+  config: ServerConfig,
+): Promise<SockServer> => {
+  const server = await createServer(config);
+
+  setInterval(async () => {
+    try {
+      await serverTick(server);
+    } catch (e) {
+      console.error(e);
+    }
+  }, config.tickRate || DEFAULT_TICK_RATE);
+
+  return server;
+}

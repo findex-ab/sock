@@ -3944,7 +3944,13 @@ var UIDGenerator = (config, inputSeed = 583281) => {
   return { next };
 };
 
+// src/tick.ts
+var serverTick = async (server2) => {
+  server2.state.clients.forEach((client) => client.socket.ping());
+};
+
 // src/server.ts
+var DEFAULT_TICK_RATE = 1e3 * 10;
 var safely = async (fun) => {
   try {
     fun();
@@ -3952,7 +3958,7 @@ var safely = async (fun) => {
     console.error(e);
   }
 };
-var server = async (config) => {
+var createServer2 = async (config) => {
   const socket = serverSocket(config.socket);
   const state = proxy({
     clients: [],
@@ -4169,19 +4175,22 @@ var server = async (config) => {
         console.error(e);
       }
     });
-    sock.on("ping", async () => {
-      await safely(
-        async () => onEvent(client, {
-          type: "PING" /* PING */,
-          payload: {}
-        })
-      );
-    });
   });
   const close = () => {
     socket.close();
   };
-  return { close };
+  return { socket, close, state };
+};
+var server = async (config) => {
+  const server2 = await createServer2(config);
+  setInterval(async () => {
+    try {
+      await serverTick(server2);
+    } catch (e) {
+      console.error(e);
+    }
+  }, config.tickRate || DEFAULT_TICK_RATE);
+  return server2;
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

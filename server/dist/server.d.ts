@@ -1,4 +1,5 @@
 import { ServerSocketConfig } from "./serverSocket";
+import { WebSocketServer } from "ws";
 import { SockEvent } from "../../shared/src/event";
 import { Dict } from "../../shared/src/types/dict";
 import { SockClientAuth } from "./auth";
@@ -9,6 +10,7 @@ export type ServerConfig = {
     authenticate: (event: SockEvent<any>) => Promise<SockClientAuth | null | undefined>;
     onClientClose?: (client: ISocket) => (void | Promise<void>);
     apps?: Record<string, SockAppInternal>;
+    tickRate?: number;
 };
 export type ServerState = {
     clients: ISocket[];
@@ -16,5 +18,7 @@ export type ServerState = {
 };
 export type SockServer = {
     close: () => void;
+    socket: InstanceType<typeof WebSocketServer>;
+    state: ServerState;
 };
 export declare const server: <AuthenticationEventType extends Dict = Dict>(config: ServerConfig) => Promise<SockServer>;
