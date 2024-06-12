@@ -3,12 +3,12 @@ import {
   SubscriptionProxy,
   proxy,
   subscriptionProxy,
-} from "../../shared/src/proxy";
+} from "#/shared/proxy";
 import WebSocket from "ws";
-import { ESockEvent, SockEvent, isSockEvent } from "../../shared/src/event";
-import { Dict } from "../../shared/src/types";
+import { ESockEvent, SockEvent, isSockEvent } from "#/shared/event";
+import { Dict } from "#/shared/types/dict";
 import { SockClientAuth } from "./auth";
-import { UIDGenerator } from "../../shared/src/utils/hash";
+import { UIDGenerator } from "#/shared/utils/hash";
 import { parseEvent } from "./event";
 import { ISocket, Socket } from "./socket";
 import { SockApp, SockAppInternal } from "./app";

@@ -1,5 +1,5 @@
-import { SockEvent } from "../../shared/src/event";
-import { Dict } from "../../shared/src/types";
+import { SockEvent } from "#/shared/event";
+import { Dict } from "#/shared/types";
 import { SchemaParser } from "./schema";
 import { ISocket } from "./socket";
 import { SetStateFun, UseStateOptions } from "./state";

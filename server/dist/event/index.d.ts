@@ -1,4 +1,4 @@
-import { SockEvent } from "../../../shared/src/event";
+import { SockEvent } from "#/shared/event";
 export declare const parseEvent: (data: {
     toString: () => string;
 }) => SockEvent;

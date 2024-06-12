@@ -1,8 +1,8 @@
 import {  MessageEvent, WebSocket } from "ws";
 import { parseEvent } from "../event";
-import { SockEvent } from "../../../shared/src/event";
+import { SockEvent } from "#/shared/event";
 import { SockClientAuth } from "../auth";
-import { unique } from "../../../shared/src/utils/array";
+import { unique } from "#/shared/utils/array";
 
 export class Socket {
   socket: WebSocket;

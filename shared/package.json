@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json --emitDeclarationOnly && esbuild ./src/** --outdir=./dist/ --bundle --platform=neutral --target=node18"
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly && esbuild ./src/** --outdir=./dist/ --bundle --platform=node --target=node18"
   },
   "author": "",
   "license": "ISC",

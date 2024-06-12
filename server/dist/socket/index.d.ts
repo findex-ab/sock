@@ -1,5 +1,5 @@
 import { WebSocket } from "ws";
-import { SockEvent } from "../../../shared/src/event";
+import { SockEvent } from "#/shared/event";
 import { SockClientAuth } from "../auth";
 export declare class Socket {
     socket: WebSocket;

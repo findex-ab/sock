@@ -21,13 +21,15 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json # --emitDeclarationOnly && esbuild ./src/** --outdir=./dist/ --bundle --platform=node --target=node18"
+    "buildz": "tsc -p tsconfig.json && npx tsx ./scripts/rewrite.ts && cp -r ../shared/dist dist/shared # --emitDeclarationOnly && esbuild ./src/** --outdir=./dist/ --bundle --platform=node --target=node18",
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly && esbuild ./src/** --outdir=./dist/ --bundle --platform=node --target=node18"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/ws": "^8.5.10",
-    "esbuild": "^0.21.4"
+    "esbuild": "^0.21.4",
+    "tsx": "^4.15.2"
   },
   "dependencies": {
     "ws": "^8.17.0",
