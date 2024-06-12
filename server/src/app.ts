@@ -47,37 +47,61 @@ export const sockApp = (init: SockAppInit): SockAppInternal => {
 
     const onTransfer = async (client: ISocket, transaction: SockTransaction) => {
       if (cfg.onTransfer) {
-        cfg.onTransfer(client, transaction);
+        try {
+          cfg.onTransfer(client, transaction);
+        } catch (e) {
+          console.error(e);
+        }
       }
     };
 
     const onCompleteTransaction = async (client: ISocket, transaction: SockCompleteTransaction) => {
       if (cfg.onCompleteTransaction) {
-        await cfg.onCompleteTransaction(client, transaction);
+        try {
+          await cfg.onCompleteTransaction(client, transaction);
+        } catch (e) {
+          console.error(e)
+        }
       }
     }
 
     const onSubscribe = async (client: ISocket, event: SockEvent) => {
       if (cfg.onSubscribe) {
-        await cfg.onSubscribe(client, event);
+        try {
+          await cfg.onSubscribe(client, event);
+        } catch (e) {
+          console.error(e)
+        }
       }
     }
 
     const onUnsubscribe = async (client: ISocket, event: SockEvent) => {
       if (cfg.onUnsubscribe) {
-        await cfg.onUnsubscribe(client, event);
+        try {
+          await cfg.onUnsubscribe(client, event);
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
 
     const onAnyEvent = async (client: ISocket, event: SockEvent) => {
       if (cfg.onAnyEvent) {
-        await cfg.onAnyEvent(client, event);
+        try {
+          await cfg.onAnyEvent(client, event);
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
 
     const onEvent = async (client: ISocket, event: SockEvent) => {
       if (cfg.onEvent) {
-        await cfg.onEvent(client, event);
+        try {
+          await cfg.onEvent(client, event);
+        } catch (e) {
+          console.error(e);
+        }
       }
       switch (event.type) {
         case ESockEvent.SUBSCRIBE_APP: await onSubscribe(client, event); break;
@@ -124,7 +148,11 @@ export const sockApp = (init: SockAppInit): SockAppInternal => {
       //client.transfer(data);
 
       if (cfg.onBinary) {
-        await cfg.onBinary(client, data);
+        try {
+          await cfg.onBinary(client, data);
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
 
