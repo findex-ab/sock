@@ -7,17 +7,33 @@
   "module": "dist/index.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "default": {
+        "types": "./neutral/index.d.ts",
+        "default": "./neutral/index.js"
+      },
+      "node": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json --emitDeclarationOnly && esbuild ./src/** --outdir=./dist/ --bundle --platform=node --target=node18"
+    "build": "npm run build:node && npm run build:neutral",
+    "build:node": "tsc -p tsconfig.json --emitDeclarationOnly --outDir ./dist && esbuild ./src/** --outdir=./dist --bundle --platform=node --target=node18",
+    "build:neutral": "tsc -p tsconfig.json --emitDeclarationOnly --outDir ./neutral && esbuild ./src/** --outdir=./neutral --bundle --platform=neutral --target=node18"
+  },
+  "tsup": {
+    "entry": ["src/index.ts"],
+    "splitting": false,
+    "sourcemap": true,
+    "clean": true,
+    "outDir": "./dist"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "esbuild": "^0.21.4"
+    "esbuild": "^0.21.4",
+    "tsup": "^8.1.0"
   },
   "dependencies": {
     "zod": "^3.23.8"

@@ -1,6 +1,6 @@
 import { ServerSocketConfig } from "./serverSocket";
-import { SockEvent } from "#/shared/event";
-import { Dict } from "#/shared/types/dict";
+import { SockEvent } from "../../shared/src/event";
+import { Dict } from "../../shared/src/types/dict";
 import { SockClientAuth } from "./auth";
 import { ISocket } from "./socket";
 import { SockApp, SockAppInternal } from "./app";

@@ -1,4 +1,4 @@
-import { Dict } from "#/shared/types/dict";
+import { Dict } from "../../../shared/src/types/dict";
 import { ISocket } from "../socket";
 export type SetStateFun<T extends Dict = Dict> = (fun: (old: T) => T) => void;
 

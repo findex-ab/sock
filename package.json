@@ -1,26 +1,38 @@
 {
   "name": "sock",
-  "version": "1.5.0",
+  "version": "1.8.0",
   "description": "",
   "exports": {
-   "./server": {
+    "./shared": {
+      "node": {
+        "types": "./shared/dist/src/index.d.ts",
+        "default": "./shared/dist/index.js"
+      },
+      "default": {
+        "types": "./shared/neutral/src/index.d.ts",
+        "default": "./shared/neutral/index.js"
+      },
       "import": {
-        "types": "./server/dist/index.d.ts",
-        "default": "./server/dist/index.js"
+        "types": "./shared/dist/src/index.d.ts",
+        "default": "./shared/dist/index.js"
       },
       "require": {
-        "types": "./server/dist/index.d.ts",
-        "default": "./server/dist/index.js"
+        "types": "./shared/dist/src/index.d.ts",
+        "default": "./shared/dist/index.js"
       }
     },
-    "./shared": {
+    "./server": {
+      "node": {
+        "types": "./server/dist/index.d.ts",
+        "default": "./server/dist/index.js"
+      },
       "import": {
-        "types": "./shared/dist/src/index.d.ts",
-        "default": "./shared/dist/index.js"
+        "types": "./server/dist/index.d.ts",
+        "default": "./server/dist/index.js"
       },
       "require": {
-        "types": "./shared/dist/src/index.d.ts",
-        "default": "./shared/dist/index.js"
+        "types": "./server/dist/index.d.ts",
+        "default": "./server/dist/index.js"
       }
     },
     "./web": {

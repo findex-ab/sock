@@ -1,4 +1,4 @@
-import { SockEvent, isSockEvent } from "#/shared/event";
+import { SockEvent, isSockEvent } from "../../../shared/src/event";
 
 export const parseEvent = (data: { toString: () => string }): SockEvent => {
   const parsed = JSON.parse(data.toString());

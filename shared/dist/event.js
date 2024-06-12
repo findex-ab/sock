@@ -28,6 +28,9 @@ var ESockEvent = /* @__PURE__ */ ((ESockEvent2) => {
   ESockEvent2["PING"] = "PING";
   ESockEvent2["AUTH"] = "AUTH";
   ESockEvent2["CLOSE"] = "CLOSE";
+  ESockEvent2["BEGIN_TRANSACTION"] = "BEGIN_TRANSACTION";
+  ESockEvent2["END_TRANSACTION"] = "END_TRANSACTION";
+  ESockEvent2["TRANSFER_RECEIVED"] = "TRANSFER_RECEIVED";
   ESockEvent2["STATE_UPDATE"] = "STATE_UPDATE";
   ESockEvent2["SUBSCRIBE"] = "SUBSCRIBE";
   ESockEvent2["SUBSCRIBE_APP"] = "SUBSCRIBE_APP";

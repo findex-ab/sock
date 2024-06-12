@@ -86,7 +86,7 @@ const fixFile = (filename: string) => {
     if (!tok) break;
 
     if (tok.c.includes('#/shared')) {
-      contents = contents.replace(tok.c, 'shared');
+      contents = contents.replace(tok.c, 'sock/shared');
     }
     next = gen.next()
   }

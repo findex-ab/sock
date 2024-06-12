@@ -1,18 +1,15 @@
 import { ServerSocketConfig, serverSocket } from "./serverSocket";
-import {
-  SubscriptionProxy,
-  proxy,
-  subscriptionProxy,
-} from "#/shared/proxy";
-import WebSocket from "ws";
-import { ESockEvent, SockEvent, isSockEvent } from "#/shared/event";
-import { Dict } from "#/shared/types/dict";
+import { SubscriptionProxy, proxy, subscriptionProxy } from "../../shared/src/proxy";
+import WebSocket, { RawData } from "ws";
+import { ESockEvent, SockEvent, isSockEvent } from "../../shared/src/event";
+import { Dict } from "../../shared/src/types/dict";
 import { SockClientAuth } from "./auth";
-import { UIDGenerator } from "#/shared/utils/hash";
+import { UIDGenerator } from "../../shared/src/utils/hash";
 import { parseEvent } from "./event";
 import { ISocket, Socket } from "./socket";
 import { SockApp, SockAppInternal } from "./app";
 import { SetStateFun, UseStateOptions } from "./state";
+import { SockCompleteTransaction, SockTransaction } from "./transaction";
 
 export type ServerConfig = {
   socket: ServerSocketConfig;
@@ -33,11 +30,11 @@ export type SockServer = {
 
 const safely = async (fun: () => Promise<any>) => {
   try {
-    fun()
+    fun();
   } catch (e) {
     console.error(e);
   }
-}
+};
 
 export const server = async <AuthenticationEventType extends Dict = Dict>(
   config: ServerConfig,
@@ -57,12 +54,14 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
     Object.entries(config.apps).map(([key, fun]) => {
       const useState = <T extends Dict = Dict>(
         initial: T,
-        options?: UseStateOptions<T>
+        options?: UseStateOptions<T>,
       ): [T, SetStateFun<T>] => {
         const stateClient = options?.client;
         const stateKey = stateClient ? `${key}-${stateClient.id}` : key;
 
-        const transform = options?.transform ? options.transform : (data: T) => data;
+        const transform = options?.transform
+          ? options.transform
+          : (data: T) => data;
 
         if (stateClient && !states[stateKey]) {
           stateClient.send({
@@ -103,8 +102,8 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
         key,
         useState,
         server: {
-          getClients: () => state.clients
-        }
+          getClients: () => state.clients,
+        },
       });
     });
   }
@@ -113,22 +112,26 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
     console.log(`Removing client ${client.id}`);
     state.clients = state.clients.filter((it) => it.id !== client.id);
 
-    await Promise.all(client.apps.map(async (appName) => {
-      return await onEvent(client, {
-        type: ESockEvent.UNSUBSCRIBE_APP,
-        app: appName,
-        payload: {}
-      })
-    }));
+    await Promise.all(
+      client.apps.map(async (appName) => {
+        return await onEvent(client, {
+          type: ESockEvent.UNSUBSCRIBE_APP,
+          app: appName,
+          payload: {},
+        });
+      }),
+    );
 
     const allAppNames = Object.keys(state.apps);
-    await Promise.all(allAppNames.map(async (appName) => {
-      const app = state.apps[appName];
-      return await app.onAnyEvent(client, {
-        type: ESockEvent.CLOSE,
-        payload: {}
-      });
-    }))
+    await Promise.all(
+      allAppNames.map(async (appName) => {
+        const app = state.apps[appName];
+        return await app.onAnyEvent(client, {
+          type: ESockEvent.CLOSE,
+          payload: {},
+        });
+      }),
+    );
   };
 
   const insertClient = async (client: ISocket) => {
@@ -141,7 +144,7 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
 
     if (event.receiverId && event.receiverId !== client.id) {
       console.log(`Event is to be forwarded to ${event.receiverId}`);
-      const receiver = state.clients.find(it => it.id === event.receiverId);
+      const receiver = state.clients.find((it) => it.id === event.receiverId);
       if (!receiver) {
         console.error(`Receiver ${event.receiverId} not found.`);
         return;
@@ -164,6 +167,30 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
           client.send(event);
         }
         break;
+      case ESockEvent.BEGIN_TRANSACTION:
+        {
+          client.beginTransaction(event);
+          client.send(event)
+        }
+        break;
+      case ESockEvent.END_TRANSACTION:
+        {
+          client.endTransaction(event);
+
+          const transaction = client.transaction;
+          if (transaction.start && transaction.end && transaction.packets) {
+            const completeTransaction: SockCompleteTransaction = {
+              start: transaction.start,
+              packets: transaction.packets,
+              size: transaction.size || 0,
+              end: transaction.end,
+            };
+            await onCompleteTransaction(client, completeTransaction);
+          }
+          client.send(event);
+          client.finishTransactions();
+        }
+        break;
     }
 
     if (event.app && client.apps.includes(event.app)) {
@@ -174,10 +201,44 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
     }
 
     const allAppNames = Object.keys(state.apps);
-    await Promise.all(allAppNames.map(async (appName) => {
-      const app = state.apps[appName];
-      return await app.onAnyEvent(client, event);
-    }))
+    await Promise.all(
+      allAppNames.map(async (appName) => {
+        const app = state.apps[appName];
+        return await app.onAnyEvent(client, event);
+      }),
+    );
+  };
+
+  const onTransfer = async (
+    client: ISocket,
+    transaction: SockTransaction,
+  ) => {
+    const start = transaction.start;
+    if (!start) return;
+    const appName = start.app;
+    if (!appName) return;
+    const app = state.apps[appName];
+    if (!app || !client.apps.includes(appName)) return;
+    await app.onTransfer(client, transaction);
+  };
+
+  const onCompleteTransaction = async (
+    client: ISocket,
+    transaction: SockCompleteTransaction,
+  ) => {
+    const start = transaction.start;
+    if (!start) return;
+    const appName = start.app;
+    if (!appName) return;
+    const app = state.apps[appName];
+    if (!app || !client.apps.includes(appName)) return;
+    await app.onCompleteTransaction(client, transaction);
+  };
+
+  const onBinary = async (client: ISocket, data: RawData) => {
+    if (!client.transaction) return;
+    client.transfer(new Uint8Array(data as any));
+    await onTransfer(client, client.transaction);
   };
 
   socket.on("connection", async (sock, req) => {
@@ -201,29 +262,35 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
     client.send({
       type: ESockEvent.AUTH,
       payload: {
-        message: 'OK'
-      }
-    })
-
-    sock.on("close", async () => {
-      await safely(async() => removeClient(client));
+        message: "OK",
+      },
     });
 
-    sock.on("message", async (msg) => {
+    sock.on("close", async () => {
+      await safely(async () => removeClient(client));
+    });
+
+    sock.on("message", async (msg, isBinary) => {
+      if (isBinary) {
+        await safely(async () => onBinary(client, msg))
+        return;
+      }
       try {
         const event = parseEvent(msg);
-        await safely(async() => onEvent(client, event));
+        await safely(async () => onEvent(client, event));
       } catch (e) {
         console.error(e);
       }
     });
 
-    sock.on('ping', async () => {
-      await safely(async () => onEvent(client, {
-        type: ESockEvent.PING,
-        payload: {}
-      }));
-    })
+    sock.on("ping", async () => {
+      await safely(async () =>
+        onEvent(client, {
+          type: ESockEvent.PING,
+          payload: {},
+        }),
+      );
+    });
   });
 
   const close = () => {

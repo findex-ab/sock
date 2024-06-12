@@ -4,6 +4,9 @@ export enum ESockEvent {
   PING = 'PING',
   AUTH = 'AUTH',
   CLOSE = 'CLOSE',
+  BEGIN_TRANSACTION = 'BEGIN_TRANSACTION',
+  END_TRANSACTION = 'END_TRANSACTION',
+  TRANSFER_RECEIVED = 'TRANSFER_RECEIVED',
   STATE_UPDATE = "STATE_UPDATE",
   SUBSCRIBE = "SUBSCRIBE",
   SUBSCRIBE_APP = "SUBSCRIBE_APP",
@@ -16,6 +19,9 @@ export type SockEvent<T extends Dict = Dict> = {
   receiverId?: string;
   senderId?: string;
   payload: T;
+  binary?: Uint8Array;
+  transactionName?: string;
+  totalSize?: number;
 }
 
 export type SockPayloadByteChunk = {

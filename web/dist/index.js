@@ -70,6 +70,9 @@ var sockClient = async (cfg, wait = false) => {
   const send = (event) => {
     socket.send(JSON.stringify(event));
   };
+  const sendRaw = (data) => {
+    socket.send(data);
+  };
   const receive = async (expect, timeout = 5e3) => {
     return new Promise((resolve) => {
       const fun = (msg) => {
@@ -115,6 +118,7 @@ var sockClient = async (cfg, wait = false) => {
     apps: [],
     socket,
     send,
+    sendRaw,
     receive,
     ack,
     subscribe
