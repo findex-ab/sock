@@ -25,6 +25,7 @@ export class Socket {
   }
 
   beginTransaction(event: SockEvent) {
+    this.transaction = undefined;
     const name = event.transactionName;
     if (!name) throw new Error(`Missing transaction name`);
     if (!event.totalSize) throw new Error(`Missing totalSize in transaction start event`);

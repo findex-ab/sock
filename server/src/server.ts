@@ -135,7 +135,11 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
   };
 
   const insertClient = async (client: ISocket) => {
-    await removeClient(client);
+    const existing = state.clients.find(it => it.id === client.id);
+    if (existing) {
+      console.warn(`Warning: Existing client already exists ${client.id}`);
+      return;
+    }
     state.clients = [...state.clients, client];
   };
 

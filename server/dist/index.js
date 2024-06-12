@@ -3565,6 +3565,7 @@ var Socket = class {
     this.transactions = {};
   }
   beginTransaction(event) {
+    this.transaction = void 0;
     const name = event.transactionName;
     if (!name) throw new Error(`Missing transaction name`);
     if (!event.totalSize) throw new Error(`Missing totalSize in transaction start event`);
@@ -4022,7 +4023,11 @@ var server = async (config) => {
     );
   };
   const insertClient = async (client) => {
-    await removeClient(client);
+    const existing = state.clients.find((it) => it.id === client.id);
+    if (existing) {
+      console.warn(`Warning: Existing client already exists ${client.id}`);
+      return;
+    }
     state.clients = [...state.clients, client];
   };
   const onEvent = async (client, event) => {

@@ -2,17 +2,22 @@
 var until = (fun, interval = 500, timeout = 6e4) => {
   const started = performance.now();
   let timer = void 0;
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
+    if (fun()) {
+      resolve(true);
+      return;
+    }
     timer = setInterval(() => {
       if (fun()) {
         clearInterval(timer);
         resolve(true);
+        return;
       }
       const now = performance.now();
       const elapsed = now - started;
       if (elapsed >= timeout) {
         clearInterval(timer);
-        reject(false);
+        resolve(false);
       }
     }, interval);
   });

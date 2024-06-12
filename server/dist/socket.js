@@ -3560,6 +3560,7 @@ var Socket = class {
     this.transactions = {};
   }
   beginTransaction(event) {
+    this.transaction = void 0;
     const name = event.transactionName;
     if (!name) throw new Error(`Missing transaction name`);
     if (!event.totalSize) throw new Error(`Missing totalSize in transaction start event`);
