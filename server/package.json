@@ -25,7 +25,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json # --emitDeclarationOnly --declaration --outDir ./dist && esbuild ./src/** --outdir=./dist --bundle --platform=node --target=node18"
+    "build": "tsc -p tsconfig.json --declaration --outDir ./dist && esbuild ./src/** --outdir=./dist --bundle --platform=node --target=node18"
   },
   "tsup": {
     "entry": ["src/index.ts"],

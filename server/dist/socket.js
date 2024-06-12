@@ -1950,7 +1950,7 @@ var require_event_target = __commonJS({
     };
     Object.defineProperty(ErrorEvent.prototype, "error", { enumerable: true });
     Object.defineProperty(ErrorEvent.prototype, "message", { enumerable: true });
-    var MessageEvent = class extends Event {
+    var MessageEvent2 = class extends Event {
       /**
        * Create a new `MessageEvent`.
        *
@@ -1970,7 +1970,7 @@ var require_event_target = __commonJS({
         return this[kData];
       }
     };
-    Object.defineProperty(MessageEvent.prototype, "data", { enumerable: true });
+    Object.defineProperty(MessageEvent2.prototype, "data", { enumerable: true });
     var EventTarget = {
       /**
        * Register an event listener.
@@ -1993,7 +1993,7 @@ var require_event_target = __commonJS({
         let wrapper;
         if (type === "message") {
           wrapper = function onMessage(data, isBinary) {
-            const event = new MessageEvent("message", {
+            const event = new MessageEvent2("message", {
               data: isBinary ? data : data.toString()
             });
             event[kTarget] = this;
@@ -2056,7 +2056,7 @@ var require_event_target = __commonJS({
       ErrorEvent,
       Event,
       EventTarget,
-      MessageEvent
+      MessageEvent: MessageEvent2
     };
     function callListener(listener, thisArg, event) {
       if (typeof listener === "object" && listener.handleEvent) {
@@ -2226,7 +2226,7 @@ var require_websocket = __commonJS({
   "../node_modules/ws/lib/websocket.js"(exports2, module2) {
     "use strict";
     var EventEmitter = require("events");
-    var https2 = require("https");
+    var https = require("https");
     var http = require("http");
     var net = require("net");
     var tls = require("tls");
@@ -2757,7 +2757,7 @@ var require_websocket = __commonJS({
       }
       const defaultPort = isSecure ? 443 : 80;
       const key = randomBytes(16).toString("base64");
-      const request = isSecure ? https2.request : http.request;
+      const request = isSecure ? https.request : http.request;
       const protocolSet = /* @__PURE__ */ new Set();
       let perMessageDeflate;
       opts.createConnection = opts.createConnection || (isSecure ? tlsConnect : netConnect);
@@ -3510,14 +3510,12 @@ var require_websocket_server = __commonJS({
   }
 });
 
-// src/serverSocket.ts
-var serverSocket_exports = {};
-__export(serverSocket_exports, {
-  serverSocket: () => serverSocket
+// src/socket/index.ts
+var socket_exports = {};
+__export(socket_exports, {
+  Socket: () => Socket
 });
-module.exports = __toCommonJS(serverSocket_exports);
-var fs = __toESM(require("fs"));
-var https = __toESM(require("https"));
+module.exports = __toCommonJS(socket_exports);
 
 // ../node_modules/ws/wrapper.mjs
 var import_stream = __toESM(require_stream(), 1);
@@ -3526,43 +3524,121 @@ var import_sender = __toESM(require_sender(), 1);
 var import_websocket = __toESM(require_websocket(), 1);
 var import_websocket_server = __toESM(require_websocket_server(), 1);
 
-// src/serverSocket.ts
-var serverSocket = (config) => {
-  if (config.socket) return config.socket;
-  console.log(`Creating server on port ${config.port}`);
-  const certExists = fs.existsSync(
-    "/etc/letsencrypt/live/ws.findex.se/cert.pem"
-  );
-  if (config.https && certExists) {
-    const httpsServer = https.createServer({
-      cert: fs.readFileSync(
-        "/etc/letsencrypt/live/ws.findex.se/cert.pem",
-        "utf8"
-      ),
-      key: fs.readFileSync(
-        "/etc/letsencrypt/live/ws.findex.se/privkey.pem",
-        "utf8"
-      ),
-      ca: fs.readFileSync(
-        "/etc/letsencrypt/live/ws.findex.se/chain.pem",
-        "utf8"
-      )
-    });
-    httpsServer.listen({
-      port: config.port,
-      host: config.host
-    });
-    const server2 = new import_websocket_server.default({
-      server: httpsServer
-    });
-    return server2;
+// ../shared/src/event.ts
+var isSockEvent = (x) => {
+  if (!x) return false;
+  if (typeof x !== "object") return false;
+  return typeof x.type === "string" && typeof x.payload === "object";
+};
+
+// src/event/index.ts
+var parseEvent = (data) => {
+  const parsed = JSON.parse(data.toString());
+  if (!isSockEvent(parsed)) throw new Error(`Malformed event`);
+  return parsed;
+};
+
+// ../shared/src/utils/array.ts
+var unique = (arr) => [...Array.from(new Set(arr))];
+
+// src/socket/index.ts
+var Socket = class {
+  socket;
+  id;
+  auth;
+  apps;
+  transactions;
+  transaction;
+  constructor(socket, id) {
+    if (typeof socket === "string") {
+      this.socket = new import_websocket.default(socket);
+    } else {
+      this.socket = socket;
+    }
+    this.id = id;
+    this.apps = [];
+    this.transactions = {};
   }
-  const server = new import_websocket_server.default({
-    port: config.port
-  });
-  return server;
+  beginTransaction(event) {
+    const name = event.transactionName;
+    if (!name) throw new Error(`Missing transaction name`);
+    if (!event.totalSize) throw new Error(`Missing totalSize in transaction start event`);
+    const transaction = this.transactions[name] || {};
+    transaction.size = 0;
+    transaction.start = event;
+    transaction.packets = [];
+    this.transactions[name] = transaction;
+    this.transaction = transaction;
+  }
+  endTransaction(event) {
+    const name = event.transactionName;
+    if (!name) throw new Error(`Missing transaction name`);
+    const transaction = this.transaction;
+    if (!transaction) throw new Error(`No such transaction ${name}`);
+    if (!transaction.start) throw new Error(`Found transaction but missing start event`);
+    transaction.end = event;
+    this.transactions[name] = transaction;
+  }
+  transfer(data) {
+    const transaction = this.transaction;
+    if (!transaction) throw new Error(`No current transaction`);
+    const start = transaction.start;
+    if (!start) throw new Error(`Found transaction but missing start event`);
+    transaction.packets = transaction.packets || [];
+    transaction.packets = [...transaction.packets, { data }];
+    transaction.size += data.length;
+    this.transaction = transaction;
+    this.send({
+      type: "TRANSFER_RECEIVED" /* TRANSFER_RECEIVED */,
+      payload: {
+        progress: start.totalSize / transaction.size
+      }
+    });
+  }
+  deleteTransaction() {
+    this.transaction = void 0;
+  }
+  deleteAllTransactions() {
+    this.transactions = {};
+  }
+  finishTransactions() {
+    this.deleteTransaction();
+    this.deleteAllTransactions();
+  }
+  addApp(app) {
+    if (this.apps.includes(app)) return;
+    console.log(`Add ${app} to client`);
+    this.apps = unique([...this.apps, app]);
+  }
+  removeApp(app) {
+    if (!this.apps.includes(app)) return;
+    console.log(`Remove ${app} to client`);
+    this.apps = this.apps.filter((it) => it !== app);
+  }
+  receive(expect, timeout = 1e4) {
+    return new Promise((resolve) => {
+      const fun = (msg) => {
+        const event = parseEvent(msg.data);
+        if (expect.app && event.app !== expect.app) return;
+        if (expect.type && event.type !== expect.type) return;
+        clear();
+        resolve(event);
+      };
+      this.socket.addEventListener("message", fun);
+      const clear = () => {
+        this.socket.removeEventListener("message", fun);
+      };
+      setTimeout(() => {
+        clear();
+        resolve(null);
+      }, timeout);
+    });
+  }
+  send(event) {
+    this.socket.send(JSON.stringify(event));
+  }
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  serverSocket
+  Socket
 });
