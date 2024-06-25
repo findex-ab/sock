@@ -4056,6 +4056,14 @@ var createServer2 = async (config) => {
       }
       await onEvent(receiver, event);
     }
+    if (event.broadcast && event.app) {
+      const clients = state.clients.filter((it) => it.apps.includes(event.app));
+      const app = state.apps[event.app];
+      if (!app) throw new Error(`No such app ${event.app}`);
+      return await Promise.all(clients.map(async (it) => {
+        return await app.onEvent(it, event);
+      }));
+    }
     switch (event.type) {
       case "SUBSCRIBE_APP" /* SUBSCRIBE_APP */:
         {

@@ -23,6 +23,7 @@ export type SockEvent<T extends Dict = Dict> = {
   binary?: Uint8Array;
   transactionName?: string;
   totalSize?: number;
+  broadcast?: boolean;
 }
 
 export type SockPayloadByteChunk = {
