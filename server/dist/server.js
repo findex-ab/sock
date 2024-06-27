@@ -3940,7 +3940,10 @@ var createServer2 = async (config) => {
     if (event.broadcast && event.app) {
       const clients = state.clients.filter((it) => it.apps.includes(event.app));
       const app = state.apps[event.app];
-      if (!app) throw new Error(`No such app ${event.app}`);
+      if (!app) {
+        console.error(`No such app ${event.app}`);
+        return;
+      }
       return await Promise.all(clients.map(async (it) => {
         return await app.onEvent(it, event);
       }));
