@@ -3546,6 +3546,7 @@ var Socket = class {
   socket;
   connectedAt;
   id;
+  ip;
   connectionRequest;
   auth;
   apps;
@@ -3650,6 +3651,7 @@ var Socket = class {
     this.socket.send(JSON.stringify(event));
   }
   getIP() {
+    if (this.ip) return this.ip;
     const a = this.connectionRequest.headers["x-forwarded-for"];
     if (typeof a === "string") return a;
     if (Array.isArray(a) && a.length >= 1 && typeof a[0] === "string") return a[0];

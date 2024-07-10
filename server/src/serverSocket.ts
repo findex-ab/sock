@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as https from "https";
+import * as http from 'http';
 import { WebSocketServer } from "ws";
 
 export type ServerSocketConfig = {
@@ -47,8 +48,15 @@ export const serverSocket = (
     return server;
   }
 
-  const server = new WebSocketServer({
+  console.log('----http')
+  const httpServer = http.createServer();
+  httpServer.listen({
     port: config.port,
+    host: config.host,
+  });
+
+  const server = new WebSocketServer({
+    server: httpServer
   });
   return server;
 };

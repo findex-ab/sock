@@ -2227,7 +2227,7 @@ var require_websocket = __commonJS({
     "use strict";
     var EventEmitter = require("events");
     var https2 = require("https");
-    var http = require("http");
+    var http2 = require("http");
     var net = require("net");
     var tls = require("tls");
     var { randomBytes, createHash } = require("crypto");
@@ -2757,7 +2757,7 @@ var require_websocket = __commonJS({
       }
       const defaultPort = isSecure ? 443 : 80;
       const key = randomBytes(16).toString("base64");
-      const request = isSecure ? https2.request : http.request;
+      const request = isSecure ? https2.request : http2.request;
       const protocolSet = /* @__PURE__ */ new Set();
       let perMessageDeflate;
       opts.createConnection = opts.createConnection || (isSecure ? tlsConnect : netConnect);
@@ -3129,7 +3129,7 @@ var require_websocket_server = __commonJS({
   "../node_modules/ws/lib/websocket-server.js"(exports2, module2) {
     "use strict";
     var EventEmitter = require("events");
-    var http = require("http");
+    var http2 = require("http");
     var { Duplex } = require("stream");
     var { createHash } = require("crypto");
     var extension = require_extension();
@@ -3200,8 +3200,8 @@ var require_websocket_server = __commonJS({
           );
         }
         if (options.port != null) {
-          this._server = http.createServer((req, res) => {
-            const body = http.STATUS_CODES[426];
+          this._server = http2.createServer((req, res) => {
+            const body = http2.STATUS_CODES[426];
             res.writeHead(426, {
               "Content-Length": body.length,
               "Content-Type": "text/plain"
@@ -3485,7 +3485,7 @@ var require_websocket_server = __commonJS({
       this.destroy();
     }
     function abortHandshake(socket, code, message, headers) {
-      message = message || http.STATUS_CODES[code];
+      message = message || http2.STATUS_CODES[code];
       headers = {
         Connection: "close",
         "Content-Type": "text/html",
@@ -3494,7 +3494,7 @@ var require_websocket_server = __commonJS({
       };
       socket.once("finish", socket.destroy);
       socket.end(
-        `HTTP/1.1 ${code} ${http.STATUS_CODES[code]}\r
+        `HTTP/1.1 ${code} ${http2.STATUS_CODES[code]}\r
 ` + Object.keys(headers).map((h) => `${h}: ${headers[h]}`).join("\r\n") + "\r\n\r\n" + message
       );
     }
@@ -3518,6 +3518,7 @@ __export(serverSocket_exports, {
 module.exports = __toCommonJS(serverSocket_exports);
 var fs = __toESM(require("fs"));
 var https = __toESM(require("https"));
+var http = __toESM(require("http"));
 
 // ../node_modules/ws/wrapper.mjs
 var import_stream = __toESM(require_stream(), 1);
@@ -3557,8 +3558,14 @@ var serverSocket = (config) => {
     });
     return server2;
   }
+  console.log("----http");
+  const httpServer = http.createServer();
+  httpServer.listen({
+    port: config.port,
+    host: config.host
+  });
   const server = new import_websocket_server.default({
-    port: config.port
+    server: httpServer
   });
   return server;
 };

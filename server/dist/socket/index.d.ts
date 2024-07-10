@@ -7,6 +7,7 @@ export declare class Socket {
     socket: WebSocket;
     connectedAt: Date;
     id: string;
+    ip?: string;
     connectionRequest: IncomingMessage;
     auth?: SockClientAuth;
     apps: string[];

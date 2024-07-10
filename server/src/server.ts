@@ -278,6 +278,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     }
     client.id = auth.id;
     client.auth = auth;
+    client.ip = typeof authResp.payload.ip === 'string' ? authResp.payload.ip : undefined;
 
     await safely(async () => insertClient(client));
     await safely(async () => onEvent(client, authResp));

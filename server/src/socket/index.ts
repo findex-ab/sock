@@ -10,6 +10,7 @@ export class Socket {
   socket: WebSocket;
   connectedAt: Date;
   id: string;
+  ip?: string;
   connectionRequest: IncomingMessage;
   auth?: SockClientAuth;
   apps: string[];
@@ -127,6 +128,7 @@ export class Socket {
   }
 
   getIP() {
+    if (this.ip) return this.ip;
     const a = this.connectionRequest.headers['x-forwarded-for'];
     if (typeof a === 'string') return a;
     if (Array.isArray(a) && a.length >= 1 && typeof a[0] === 'string') return a[0];
