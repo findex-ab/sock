@@ -1,6 +1,6 @@
 {
   "name": "sock",
-  "version": "1.9.7",
+  "version": "1.9.8",
   "description": "",
   "exports": {
     "./shared": {
@@ -50,5 +50,8 @@
     "shared",
     "server",
     "web"
-  ]
+  ],
+  "devDependencies": {
+    "typescript": "^5.5.3"
+  }
 }

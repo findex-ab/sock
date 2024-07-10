@@ -268,7 +268,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
   socket.on("connection", async (sock, req) => {
     console.log(`Received connection`);
     const uid = uidGen.next();
-    const client = new Socket(sock, uid);
+    const client = new Socket(sock, uid, req);
     const authResp = await client.receive({ type: ESockEvent.AUTH });
     if (!authResp) return;
     const auth = await config.authenticate(authResp);

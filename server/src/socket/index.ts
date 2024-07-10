@@ -4,23 +4,26 @@ import { ESockEvent, SockEvent } from "../../../shared/src/event";
 import { SockClientAuth } from "../auth";
 import { unique } from "../../../shared/src/utils/array";
 import { SockTransaction } from "../transaction";
+import { IncomingMessage } from "http";
 
 export class Socket {
   socket: WebSocket;
   connectedAt: Date;
   id: string;
+  connectionRequest: IncomingMessage;
   auth?: SockClientAuth;
   apps: string[];
   transactions: Record<string, SockTransaction>;
   transaction?: SockTransaction;
 
-  constructor(socket: WebSocket | string, id: string) {
+  constructor(socket: WebSocket | string, id: string, connectionRequest: IncomingMessage) {
     if (typeof socket === 'string') {
       this.socket = new WebSocket(socket);
     } else {
       this.socket = socket;
     }
     this.id = id;
+    this.connectionRequest = connectionRequest;
     this.apps = [];
     this.transactions = {};
     this.connectedAt = new Date();
@@ -121,6 +124,13 @@ export class Socket {
 
   send(event: SockEvent) {
     this.socket.send(JSON.stringify(event));
+  }
+
+  getIP() {
+    const a = this.connectionRequest.headers['x-forwarded-for'];
+    if (typeof a === 'string') return a;
+    if (Array.isArray(a) && a.length >= 1 && typeof a[0] === 'string') return a[0];
+    return this.connectionRequest.socket.remoteAddress;
   }
 }
 

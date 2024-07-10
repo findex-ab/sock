@@ -3546,17 +3546,19 @@ var Socket = class {
   socket;
   connectedAt;
   id;
+  connectionRequest;
   auth;
   apps;
   transactions;
   transaction;
-  constructor(socket, id) {
+  constructor(socket, id, connectionRequest) {
     if (typeof socket === "string") {
       this.socket = new import_websocket.default(socket);
     } else {
       this.socket = socket;
     }
     this.id = id;
+    this.connectionRequest = connectionRequest;
     this.apps = [];
     this.transactions = {};
     this.connectedAt = /* @__PURE__ */ new Date();
@@ -3646,6 +3648,12 @@ var Socket = class {
   }
   send(event) {
     this.socket.send(JSON.stringify(event));
+  }
+  getIP() {
+    const a = this.connectionRequest.headers["x-forwarded-for"];
+    if (typeof a === "string") return a;
+    if (Array.isArray(a) && a.length >= 1 && typeof a[0] === "string") return a[0];
+    return this.connectionRequest.socket.remoteAddress;
   }
 };
 // Annotate the CommonJS export names for ESM import in node:

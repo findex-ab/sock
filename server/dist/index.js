@@ -3551,17 +3551,19 @@ var Socket = class {
   socket;
   connectedAt;
   id;
+  connectionRequest;
   auth;
   apps;
   transactions;
   transaction;
-  constructor(socket, id) {
+  constructor(socket, id, connectionRequest) {
     if (typeof socket === "string") {
       this.socket = new import_websocket.default(socket);
     } else {
       this.socket = socket;
     }
     this.id = id;
+    this.connectionRequest = connectionRequest;
     this.apps = [];
     this.transactions = {};
     this.connectedAt = /* @__PURE__ */ new Date();
@@ -3651,6 +3653,12 @@ var Socket = class {
   }
   send(event) {
     this.socket.send(JSON.stringify(event));
+  }
+  getIP() {
+    const a = this.connectionRequest.headers["x-forwarded-for"];
+    if (typeof a === "string") return a;
+    if (Array.isArray(a) && a.length >= 1 && typeof a[0] === "string") return a[0];
+    return this.connectionRequest.socket.remoteAddress;
   }
 };
 
@@ -4146,7 +4154,7 @@ var createServer2 = async (config) => {
   socket.on("connection", async (sock, req) => {
     console.log(`Received connection`);
     const uid = uidGen.next();
-    const client = new Socket(sock, uid);
+    const client = new Socket(sock, uid, req);
     const authResp = await client.receive({ type: "AUTH" /* AUTH */ });
     if (!authResp) return;
     const auth = await config.authenticate(authResp);
