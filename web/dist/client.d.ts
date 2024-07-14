@@ -16,6 +16,7 @@ export type Client = ClientConfig & {
     receive: <T extends Dict = Dict>(expect: Partial<SockEvent>, timeout?: number) => Promise<SockEvent<T> | null>;
     ack: <T extends Dict = Dict>(event: SockEvent<T>, expect: Partial<SockEvent>, timeout?: number) => Promise<SockEvent<T> | null>;
     subscribe: (listener: ClientEventListener) => () => void;
+    clearListeners: () => void;
     apps: string[];
 };
 export declare const sockClient: (cfg: ClientConfig, wait?: boolean) => Promise<Client>;

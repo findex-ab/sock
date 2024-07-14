@@ -118,6 +118,9 @@ var sockClient = async (cfg, wait = false) => {
       console.error(e);
     }
   });
+  const clearListeners = () => {
+    state.eventListeners = [];
+  };
   return proxy({
     ...cfg,
     apps: [],
@@ -126,7 +129,8 @@ var sockClient = async (cfg, wait = false) => {
     sendRaw,
     receive,
     ack,
-    subscribe
+    subscribe,
+    clearListeners
   });
 };
 export {

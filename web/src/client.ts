@@ -23,6 +23,7 @@ export type Client = ClientConfig & {
   receive: <T extends Dict = Dict>(expect: Partial<SockEvent>, timeout?: number) => Promise<SockEvent<T> | null>;
   ack: <T extends Dict = Dict>(event: SockEvent<T>, expect: Partial<SockEvent>, timeout?: number) => Promise<SockEvent<T> | null>;
   subscribe: (listener: ClientEventListener) => () => void;
+  clearListeners: () => void;
   apps: string[];
 }
 
@@ -100,7 +101,11 @@ export const sockClient = async (cfg: ClientConfig, wait: boolean = false): Prom
     } catch (e) {
       console.error(e);
     }
-  })
+  });
+
+  const clearListeners = () => {
+    state.eventListeners = [];
+  }
 
   return proxy<Client>({
     ...cfg,
@@ -110,6 +115,7 @@ export const sockClient = async (cfg: ClientConfig, wait: boolean = false): Prom
     sendRaw,
     receive,
     ack,
-    subscribe
+    subscribe,
+    clearListeners
   })
 }
