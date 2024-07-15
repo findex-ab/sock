@@ -8,7 +8,7 @@ import { SockApp, SockAppInternal } from "./app";
 export type ServerConfig = {
     socket: ServerSocketConfig;
     authenticate: (event: SockEvent<any>) => Promise<SockClientAuth | null | undefined>;
-    onClientClose?: (client: ISocket) => (void | Promise<void>);
+    onClientClose?: (client: ISocket) => void | Promise<void>;
     apps?: Record<string, SockAppInternal>;
     tickRate?: number;
 };

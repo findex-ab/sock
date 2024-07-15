@@ -1,5 +1,9 @@
 import { ServerSocketConfig, serverSocket } from "./serverSocket";
-import { SubscriptionProxy, proxy, subscriptionProxy } from "../../shared/src/proxy";
+import {
+  SubscriptionProxy,
+  proxy,
+  subscriptionProxy,
+} from "../../shared/src/proxy";
 import WebSocket, { RawData, WebSocketServer } from "ws";
 import { ESockEvent, SockEvent, isSockEvent } from "../../shared/src/event";
 import { Dict } from "../../shared/src/types/dict";
@@ -19,7 +23,7 @@ export type ServerConfig = {
   authenticate: (
     event: SockEvent<any>,
   ) => Promise<SockClientAuth | null | undefined>;
-  onClientClose?: (client: ISocket) => (void | Promise<void>);
+  onClientClose?: (client: ISocket) => void | Promise<void>;
   apps?: Record<string, SockAppInternal>;
   tickRate?: number;
 };
@@ -56,8 +60,10 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
   });
 
   const states: Record<string, SubscriptionProxy<any>> = {};
-  const getAppStateKey = (appName: string, client?: ISocket) => client ? `${appName}-${client.id}` : appName;
-  const getAppState = (appName: string, client: ISocket) => states[getAppStateKey(appName, client)];
+  const getAppStateKey = (appName: string, client?: ISocket) =>
+    client ? `${appName}-${client.id}` : appName;
+  const getAppState = (appName: string, client: ISocket) =>
+    states[getAppStateKey(appName, client)];
 
   if (config.apps) {
     Object.entries(config.apps).map(([key, fun]) => {
@@ -144,7 +150,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
   };
 
   const insertClient = async (client: ISocket) => {
-    const existing = state.clients.find(it => it.id === client.id);
+    const existing = state.clients.find((it) => it.id === client.id);
     if (existing) {
       console.warn(`Warning: Existing client already exists ${client.id}`);
       return;
@@ -166,19 +172,36 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     }
 
     if (event.broadcast && event.app) {
-      const clients = state.clients.filter(it => it.apps.includes(event.app));
+      const clients = state.clients.filter((it) => it.apps.includes(event.app));
       const app = state.apps[event.app];
       if (!app) {
         console.error(`No such app ${event.app}`);
         return;
       }
 
-      return await Promise.all(clients.map(async (it) => {
-        return await app.onEvent(it, event);
-      }))
+      return await Promise.all(
+        clients.map(async (it) => {
+          return await app.onEvent(it, event);
+        }),
+      );
     }
 
     switch (event.type) {
+      case ESockEvent.PULL:
+        {
+          if (!event.app) throw new Error(`Missing app in event`);
+          client.addApp(event.app);
+          client.send(event);
+          const appState = getAppState(event.app, client);
+          if (appState && appState.state) {
+            client.send({
+              type: ESockEvent.STATE_UPDATE,
+              app: event.app,
+              payload: appState.state,
+            });
+          }
+        }
+        break;
       case ESockEvent.SUBSCRIBE_APP:
         {
           if (!event.app) throw new Error(`Missing app in event`);
@@ -189,7 +212,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
             client.send({
               type: ESockEvent.STATE_UPDATE,
               app: event.app,
-              payload: appState?.state || {}
+              payload: appState?.state || {},
             });
           }, 1000);
         }
@@ -204,7 +227,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
       case ESockEvent.BEGIN_TRANSACTION:
         {
           client.beginTransaction(event);
-          client.send(event)
+          client.send(event);
         }
         break;
       case ESockEvent.END_TRANSACTION:
@@ -243,10 +266,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     );
   };
 
-  const onTransfer = async (
-    client: ISocket,
-    transaction: SockTransaction,
-  ) => {
+  const onTransfer = async (client: ISocket, transaction: SockTransaction) => {
     const start = transaction.start;
     if (!start) return;
     const appName = start.app;
@@ -279,7 +299,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     console.log(`Received connection`);
     const uid = uidGen.next();
     const client = new Socket(sock, uid, req);
-    const authResp = await client.receive({ type: ESockEvent.AUTH });
+    const authResp = await client.receive({ type: ESockEvent.AUTH }, 1000 * 60);
     if (!authResp) return;
     const auth = await config.authenticate(authResp);
     if (!auth) {
@@ -288,7 +308,8 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     }
     client.id = auth.id;
     client.auth = auth;
-    client.ip = typeof authResp.payload.ip === 'string' ? authResp.payload.ip : undefined;
+    client.ip =
+      typeof authResp.payload.ip === "string" ? authResp.payload.ip : undefined;
 
     await safely(async () => insertClient(client));
     await safely(async () => onEvent(client, authResp));
@@ -313,7 +334,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
 
     sock.on("message", async (msg, isBinary) => {
       if (isBinary) {
-        await safely(async () => onBinary(client, msg))
+        await safely(async () => onBinary(client, msg));
         return;
       }
       try {
@@ -348,4 +369,4 @@ export const server = async <AuthenticationEventType extends Dict = Dict>(
   }, config.tickRate || DEFAULT_TICK_RATE);
 
   return server;
-}
+};

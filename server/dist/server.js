@@ -3956,11 +3956,28 @@ var createServer2 = async (config) => {
         console.error(`No such app ${event.app}`);
         return;
       }
-      return await Promise.all(clients.map(async (it) => {
-        return await app.onEvent(it, event);
-      }));
+      return await Promise.all(
+        clients.map(async (it) => {
+          return await app.onEvent(it, event);
+        })
+      );
     }
     switch (event.type) {
+      case "PULL" /* PULL */:
+        {
+          if (!event.app) throw new Error(`Missing app in event`);
+          client.addApp(event.app);
+          client.send(event);
+          const appState = getAppState(event.app, client);
+          if (appState && appState.state) {
+            client.send({
+              type: "STATE_UPDATE" /* STATE_UPDATE */,
+              app: event.app,
+              payload: appState.state
+            });
+          }
+        }
+        break;
       case "SUBSCRIBE_APP" /* SUBSCRIBE_APP */:
         {
           if (!event.app) throw new Error(`Missing app in event`);
@@ -4048,7 +4065,7 @@ var createServer2 = async (config) => {
     console.log(`Received connection`);
     const uid = uidGen.next();
     const client = new Socket(sock, uid, req);
-    const authResp = await client.receive({ type: "AUTH" /* AUTH */ });
+    const authResp = await client.receive({ type: "AUTH" /* AUTH */ }, 1e3 * 60);
     if (!authResp) return;
     const auth = await config.authenticate(authResp);
     if (!auth) {

@@ -89,6 +89,7 @@ var ESockEvent = /* @__PURE__ */ ((ESockEvent2) => {
   ESockEvent2["END_TRANSACTION"] = "END_TRANSACTION";
   ESockEvent2["TRANSFER_RECEIVED"] = "TRANSFER_RECEIVED";
   ESockEvent2["STATE_UPDATE"] = "STATE_UPDATE";
+  ESockEvent2["PULL"] = "PULL";
   ESockEvent2["SUBSCRIBE"] = "SUBSCRIBE";
   ESockEvent2["SUBSCRIBE_APP"] = "SUBSCRIBE_APP";
   ESockEvent2["UNSUBSCRIBE_APP"] = "UNSUBSCRIBE_APP";
