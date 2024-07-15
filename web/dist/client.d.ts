@@ -3,11 +3,15 @@ import { Dict } from "#/shared/types";
 export type ClientEventListener = {
     app?: string;
     fun: (event: SockEvent) => (void | Promise<void>);
+    uid?: string;
 };
 export type ClientConfig = {
     socket: string | WebSocket;
     id: number;
     onEvent?: (event: SockEvent) => (void | Promise<void>);
+    throttleMessages?: {
+        milliSeconds: number;
+    };
 };
 export type Client = ClientConfig & {
     socket: WebSocket;

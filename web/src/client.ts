@@ -8,12 +8,16 @@ const DEFAULT_TIMEOUT = 10000;
 export type ClientEventListener = {
   app?: string;
   fun: (event: SockEvent) => (void | Promise<void>);
+  uid?: string;
 }
 
 export type ClientConfig = {
   socket: string | WebSocket;
   id: number;
   onEvent?: (event: SockEvent) => (void | Promise<void>);
+  throttleMessages?: {
+    milliSeconds: number;
+  }
 }
 
 export type Client = ClientConfig & {
@@ -32,9 +36,13 @@ export const sockClient = async (cfg: ClientConfig, wait: boolean = false): Prom
   const socket = typeof connection === 'string' ? new WebSocket(connection) : connection;
 
   const state = proxy<{
-    eventListeners: ClientEventListener[]
+    eventListeners: ClientEventListener[],
+    lastMessageTime: number,
+    lastMessage:  SockEvent | null
   }>({
-    eventListeners: []
+    eventListeners: [],
+    lastMessageTime: 0,
+    lastMessage: null
   })
 
   if (wait) {
@@ -42,6 +50,7 @@ export const sockClient = async (cfg: ClientConfig, wait: boolean = false): Prom
   }
 
   const subscribe = (listener: ClientEventListener) => {
+//    const exists = (listener.uid && !!state.eventListeners.find(it => it.uid === listener.uid)) || state.eventListeners.includes(listener);
     state.eventListeners = [...state.eventListeners, listener];
 
     return () => {
@@ -87,6 +96,16 @@ export const sockClient = async (cfg: ClientConfig, wait: boolean = false): Prom
     try {
       const parsed = JSON.parse(msg.data.toString());
       if (!isSockEvent(parsed)) return;
+
+      const now = performance.now();
+
+      if (cfg.throttleMessages && state.lastMessageTime > 0 && state.lastMessage && state.lastMessage.type === parsed.type) {
+        const diff = now - state.lastMessageTime;
+        if (diff < cfg.throttleMessages.milliSeconds) return;
+      }
+
+      state.lastMessageTime = now;
+      state.lastMessage = parsed;
 
       if (cfg.onEvent) {
         cfg.onEvent(parsed);

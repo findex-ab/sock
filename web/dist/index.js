@@ -61,7 +61,9 @@ var sockClient = async (cfg, wait = false) => {
   const { socket: connection } = cfg;
   const socket = typeof connection === "string" ? new WebSocket(connection) : connection;
   const state = proxy({
-    eventListeners: []
+    eventListeners: [],
+    lastMessageTime: 0,
+    lastMessage: null
   });
   if (wait) {
     await until(() => socket.readyState === WebSocket.OPEN, 0, DEFAULT_TIMEOUT);
@@ -105,6 +107,13 @@ var sockClient = async (cfg, wait = false) => {
     try {
       const parsed = JSON.parse(msg.data.toString());
       if (!isSockEvent(parsed)) return;
+      const now = performance.now();
+      if (cfg.throttleMessages && state.lastMessageTime > 0 && state.lastMessage && state.lastMessage.type === parsed.type) {
+        const diff = now - state.lastMessageTime;
+        if (diff < cfg.throttleMessages.milliSeconds) return;
+      }
+      state.lastMessageTime = now;
+      state.lastMessage = parsed;
       if (cfg.onEvent) {
         cfg.onEvent(parsed);
       }
