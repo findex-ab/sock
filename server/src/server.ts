@@ -55,16 +55,18 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     uidLength: 24,
   });
 
-  if (config.apps) {
-    const states: Record<string, SubscriptionProxy<any>> = {};
+  const states: Record<string, SubscriptionProxy<any>> = {};
+  const getAppStateKey = (appName: string, client?: ISocket) => client ? `${appName}-${client.id}` : appName;
+  const getAppState = (appName: string, client: ISocket) => states[getAppStateKey(appName, client)];
 
+  if (config.apps) {
     Object.entries(config.apps).map(([key, fun]) => {
       const useState = <T extends Dict = Dict>(
         initial: T,
         options?: UseStateOptions<T>,
       ): [T, SetStateFun<T>] => {
         const stateClient = options?.client;
-        const stateKey = stateClient ? `${key}-${stateClient.id}` : key;
+        const stateKey = getAppStateKey(key, stateClient);
 
         const transform = options?.transform
           ? options.transform
@@ -182,6 +184,14 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
           if (!event.app) throw new Error(`Missing app in event`);
           client.addApp(event.app);
           client.send(event);
+          setTimeout(() => {
+            const appState = getAppState(event.app, client);
+            client.send({
+              type: ESockEvent.STATE_UPDATE,
+              app: event.app,
+              payload: appState?.state || {}
+            });
+          }, 1000);
         }
         break;
       case ESockEvent.UNSUBSCRIBE_APP:

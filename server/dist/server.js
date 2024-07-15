@@ -3858,12 +3858,14 @@ var createServer2 = async (config) => {
   const uidGen = UIDGenerator({
     uidLength: 24
   });
+  const states = {};
+  const getAppStateKey = (appName, client) => client ? `${appName}-${client.id}` : appName;
+  const getAppState = (appName, client) => states[getAppStateKey(appName, client)];
   if (config.apps) {
-    const states = {};
     Object.entries(config.apps).map(([key, fun]) => {
       const useState = (initial, options) => {
         const stateClient = options?.client;
-        const stateKey = stateClient ? `${key}-${stateClient.id}` : key;
+        const stateKey = getAppStateKey(key, stateClient);
         const transform = options?.transform ? options.transform : (data) => data;
         if (stateClient && !states[stateKey]) {
           stateClient.send({
@@ -3964,6 +3966,14 @@ var createServer2 = async (config) => {
           if (!event.app) throw new Error(`Missing app in event`);
           client.addApp(event.app);
           client.send(event);
+          setTimeout(() => {
+            const appState = getAppState(event.app, client);
+            client.send({
+              type: "STATE_UPDATE" /* STATE_UPDATE */,
+              app: event.app,
+              payload: appState?.state || {}
+            });
+          }, 1e3);
         }
         break;
       case "UNSUBSCRIBE_APP" /* UNSUBSCRIBE_APP */:
