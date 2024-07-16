@@ -3861,6 +3861,14 @@ var createServer2 = async (config) => {
   const states = {};
   const getAppStateKey = (appName, client) => client ? `${appName}-${client.id}` : appName;
   const getAppState = (appName, client) => states[getAppStateKey(appName, client)];
+  const sendAppStateUpdate = (appName, client) => {
+    const stateEvent = {
+      type: "STATE_UPDATE" /* STATE_UPDATE */,
+      app: appName,
+      payload: getAppState(appName, client)?.state || getAppState(appName)?.state
+    };
+    client.send(stateEvent);
+  };
   if (config.apps) {
     Object.entries(config.apps).map(([key, fun]) => {
       const useState = (initial, options) => {
@@ -3968,14 +3976,7 @@ var createServer2 = async (config) => {
           if (!event.app) throw new Error(`Missing app in event`);
           client.addApp(event.app);
           client.send(event);
-          const appState = getAppState(event.app, client);
-          if (appState && appState.state) {
-            client.send({
-              type: "STATE_UPDATE" /* STATE_UPDATE */,
-              app: event.app,
-              payload: appState.state
-            });
-          }
+          sendAppStateUpdate(event.app, client);
         }
         break;
       case "SUBSCRIBE_APP" /* SUBSCRIBE_APP */:
@@ -3984,12 +3985,7 @@ var createServer2 = async (config) => {
           client.addApp(event.app);
           client.send(event);
           setTimeout(() => {
-            const appState = getAppState(event.app, client);
-            client.send({
-              type: "STATE_UPDATE" /* STATE_UPDATE */,
-              app: event.app,
-              payload: appState?.state || {}
-            });
+            sendAppStateUpdate(event.app, client);
           }, 1e3);
         }
         break;
