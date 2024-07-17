@@ -75,6 +75,14 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     client.send(stateEvent);
   }
 
+  const deleteAppState = (appName: string, client: ISocket) => {
+    const key = getAppStateKey(appName, client);
+    if (states[key]) {
+      console.log(`Deleting app state ${key}`);
+      delete states[key];
+    }
+  }
+
   if (config.apps) {
     Object.entries(config.apps).map(([key, fun]) => {
       const useState = <T extends Dict = Dict>(
@@ -150,6 +158,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     const allAppNames = Object.keys(state.apps);
     await Promise.all(
       allAppNames.map(async (appName) => {
+        deleteAppState(appName, client);
         const app = state.apps[appName];
         return await app.onAnyEvent(client, {
           type: ESockEvent.CLOSE,

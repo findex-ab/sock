@@ -3988,6 +3988,13 @@ var createServer2 = async (config) => {
     };
     client.send(stateEvent);
   };
+  const deleteAppState = (appName, client) => {
+    const key = getAppStateKey(appName, client);
+    if (states[key]) {
+      console.log(`Deleting app state ${key}`);
+      delete states[key];
+    }
+  };
   if (config.apps) {
     Object.entries(config.apps).map(([key, fun]) => {
       const useState = (initial, options) => {
@@ -4049,6 +4056,7 @@ var createServer2 = async (config) => {
     const allAppNames = Object.keys(state.apps);
     await Promise.all(
       allAppNames.map(async (appName) => {
+        deleteAppState(appName, client);
         const app = state.apps[appName];
         return await app.onAnyEvent(client, {
           type: "CLOSE" /* CLOSE */,
