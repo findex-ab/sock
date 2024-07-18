@@ -205,6 +205,12 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
       );
     }
 
+    if (event.type !== ESockEvent.SUBSCRIBE_APP && event.type !== ESockEvent.UNSUBSCRIBE_APP && event.app && client.apps.includes(event.app) === false) {
+      client.addApp(event.app);
+      client.send(event);
+      sendAppStateUpdate(event.app, client);
+    }
+
     switch (event.type) {
       case ESockEvent.PULL:
         {

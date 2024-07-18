@@ -3978,6 +3978,11 @@ var createServer2 = async (config) => {
         })
       );
     }
+    if (event.type !== "SUBSCRIBE_APP" /* SUBSCRIBE_APP */ && event.type !== "UNSUBSCRIBE_APP" /* UNSUBSCRIBE_APP */ && event.app && client.apps.includes(event.app) === false) {
+      client.addApp(event.app);
+      client.send(event);
+      sendAppStateUpdate(event.app, client);
+    }
     switch (event.type) {
       case "PULL" /* PULL */:
         {
