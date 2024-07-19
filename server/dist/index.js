@@ -3610,6 +3610,7 @@ var Socket = class {
       type: "TRANSFER_RECEIVED" /* TRANSFER_RECEIVED */,
       app: start.app,
       transactionName: transaction.uid,
+      sizeReceived: transaction.size,
       payload: {
         progress: transaction.size / Math.max(1, totalSize)
       }
