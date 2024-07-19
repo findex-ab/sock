@@ -45,6 +45,7 @@ export class Socket {
     transaction.size = 0;
     transaction.start = event;
     transaction.packets = [];
+    transaction.uid = name;
     this.transactions[name] = transaction;
     this.transaction = transaction;
   }
@@ -72,6 +73,7 @@ export class Socket {
     this.send({
       type: ESockEvent.TRANSFER_RECEIVED,
       app: start.app,
+      transactionName: transaction.uid,
       payload: {
         progress: transaction.size / Math.max(1, totalSize)
       },

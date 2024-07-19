@@ -254,6 +254,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
               packets: transaction.packets,
               size: transaction.size || 0,
               end: transaction.end,
+              uid: transaction.uid
             };
             await onCompleteTransaction(client, completeTransaction);
           }

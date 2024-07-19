@@ -6,12 +6,14 @@ export type SockTransaction = {
     start?: SockEvent;
     packets: TransactionPacket[];
     size: number;
+    uid: string;
     end?: SockEvent;
 };
 export type SockCompleteTransaction = {
     start: SockEvent;
     packets: TransactionPacket[];
     size: number;
+    uid: string;
     end: SockEvent;
 };
 export {};

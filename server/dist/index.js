@@ -3583,6 +3583,7 @@ var Socket = class {
     transaction.size = 0;
     transaction.start = event;
     transaction.packets = [];
+    transaction.uid = name;
     this.transactions[name] = transaction;
     this.transaction = transaction;
   }
@@ -3608,6 +3609,7 @@ var Socket = class {
     this.send({
       type: "TRANSFER_RECEIVED" /* TRANSFER_RECEIVED */,
       app: start.app,
+      transactionName: transaction.uid,
       payload: {
         progress: transaction.size / Math.max(1, totalSize)
       }
@@ -4143,7 +4145,8 @@ var createServer2 = async (config) => {
               start: transaction.start,
               packets: transaction.packets,
               size: transaction.size || 0,
-              end: transaction.end
+              end: transaction.end,
+              uid: transaction.uid
             };
             await onCompleteTransaction(client, completeTransaction);
           }
