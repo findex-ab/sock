@@ -3,6 +3,7 @@ import { WebSocketServer } from "ws";
 import { SockEvent } from "../../shared/src/event";
 import { Dict } from "../../shared/src/types/dict";
 import { SockClientAuth } from "./auth";
+import { QueuedEvent } from "./event";
 import { ISocket } from "./socket";
 import { SockApp, SockAppInternal } from "./app";
 export type ServerConfig = {
@@ -15,6 +16,7 @@ export type ServerConfig = {
 export type ServerState = {
     clients: ISocket[];
     apps: Record<string, SockApp>;
+    eventQueue: QueuedEvent[];
 };
 export type SockServer = {
     close: () => void;

@@ -9,14 +9,14 @@ import { ESockEvent, SockEvent, isSockEvent } from "../../shared/src/event";
 import { Dict } from "../../shared/src/types/dict";
 import { SockClientAuth } from "./auth";
 import { UIDGenerator } from "../../shared/src/utils/hash";
-import { parseEvent } from "./event";
+import { parseEvent, QueuedEvent } from "./event";
 import { ISocket, Socket } from "./socket";
 import { SockApp, SockAppInternal } from "./app";
 import { SetStateFun, UseStateOptions } from "./state";
 import { SockCompleteTransaction, SockTransaction } from "./transaction";
 import { serverTick } from "./tick";
 
-const DEFAULT_TICK_RATE = 1000 * 10;
+const DEFAULT_TICK_RATE = 1000;
 
 export type ServerConfig = {
   socket: ServerSocketConfig;
@@ -31,6 +31,7 @@ export type ServerConfig = {
 export type ServerState = {
   clients: ISocket[];
   apps: Record<string, SockApp>;
+  eventQueue: QueuedEvent[]
 };
 
 export type SockServer = {
@@ -54,6 +55,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
   const state = proxy<ServerState>({
     clients: [],
     apps: {},
+    eventQueue: []
   });
   const uidGen = UIDGenerator({
     uidLength: 24,
@@ -312,20 +314,33 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
   socket.on("connection", async (sock, req) => {
     console.log(`Received connection`);
     const uid = uidGen.next();
+
+    if (state.clients.find(it => it.id === uid)) {
+      console.error(`Warning: uid collision ${uid}`);
+    }
+    
     const client = new Socket(sock, uid, req);
-    const authResp = await client.receive({ type: ESockEvent.AUTH }, 1000 * 60);
-    if (!authResp) return;
+    const authResp = await client.receive({ type: ESockEvent.AUTH }, 5000);
+    if (!authResp) {
+      console.error(`Did not receive authentication response.`);
+      sock.close();
+      return;
+    }
     const auth = await config.authenticate(authResp);
     if (!auth) {
       console.error("Not authenticated");
       return;
     }
+    console.log(`-- Authenticated --`);
     client.id = auth.id;
     client.auth = auth;
     client.ip =
       typeof authResp.payload.ip === "string" ? authResp.payload.ip : undefined;
 
+    console.log(`inserting client...`)
     await safely(async () => insertClient(client));
+
+    console.log(`on event....`);
     await safely(async () => onEvent(client, authResp));
 
     client.send({

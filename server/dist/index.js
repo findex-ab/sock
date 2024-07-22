@@ -3963,7 +3963,7 @@ var serverTick = async (server2) => {
 };
 
 // src/server.ts
-var DEFAULT_TICK_RATE = 1e3 * 10;
+var DEFAULT_TICK_RATE = 1e3;
 var safely = async (fun) => {
   try {
     fun();
@@ -3975,7 +3975,8 @@ var createServer2 = async (config) => {
   const socket = serverSocket(config.socket);
   const state = proxy({
     clients: [],
-    apps: {}
+    apps: {},
+    eventQueue: []
   });
   const uidGen = UIDGenerator({
     uidLength: 24
@@ -4196,18 +4197,28 @@ var createServer2 = async (config) => {
   socket.on("connection", async (sock, req) => {
     console.log(`Received connection`);
     const uid = uidGen.next();
+    if (state.clients.find((it) => it.id === uid)) {
+      console.error(`Warning: uid collision ${uid}`);
+    }
     const client = new Socket(sock, uid, req);
-    const authResp = await client.receive({ type: "AUTH" /* AUTH */ }, 1e3 * 60);
-    if (!authResp) return;
+    const authResp = await client.receive({ type: "AUTH" /* AUTH */ }, 5e3);
+    if (!authResp) {
+      console.error(`Did not receive authentication response.`);
+      sock.close();
+      return;
+    }
     const auth = await config.authenticate(authResp);
     if (!auth) {
       console.error("Not authenticated");
       return;
     }
+    console.log(`-- Authenticated --`);
     client.id = auth.id;
     client.auth = auth;
     client.ip = typeof authResp.payload.ip === "string" ? authResp.payload.ip : void 0;
+    console.log(`inserting client...`);
     await safely(async () => insertClient(client));
+    console.log(`on event....`);
     await safely(async () => onEvent(client, authResp));
     client.send({
       type: "AUTH" /* AUTH */,
