@@ -1,5 +1,5 @@
-import { Dict } from "#/shared/types";
-import { range } from "#/shared/utils/array";
+import { Dict } from "../../../shared/src/types/dict";
+import { range } from "../../../shared/src/utils/array";
 import { SchemaParser } from "../schema";
 
 export const BinaryReader = (data: Uint8Array) => {

@@ -1,4 +1,4 @@
-import { Dict } from "#/shared/types";
+import { Dict } from "../../../shared/src/types/dict";
 import { SchemaParser } from "../schema";
 export declare const BinaryReader: (data: Uint8Array) => {
     readString: (length: number) => string;
