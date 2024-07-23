@@ -43,7 +43,7 @@ export const BinaryReader = (data: Uint8Array) => {
     return str;
   }
 
-  const readJSON = <T extends Dict = Dict>(parser?: SchemaParser<T>): T | null => {
+  const readJSON = <T extends Dict = Dict>(parser?: SchemaParser<T>): [T, T] | null => {
     try {
       if (!expectString('<JSON>')) return null;
       const str = readStringUntil('</JSON>');
@@ -56,10 +56,10 @@ export const BinaryReader = (data: Uint8Array) => {
       const obj = JSON.parse(decoded);
 
       if (parser) {
-        return parser.parse(obj);
+        return [parser.parse(obj), obj as T];
       }
       
-      return obj as T;
+      return [obj as T, obj as T];
     } catch (e) {
       console.error(e);
       return null;

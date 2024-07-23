@@ -3887,9 +3887,9 @@ var BinaryReader = (data) => {
       if (!decoded.startsWith("{")) return null;
       const obj = JSON.parse(decoded);
       if (parser) {
-        return parser.parse(obj);
+        return [parser.parse(obj), obj];
       }
-      return obj;
+      return [obj, obj];
     } catch (e) {
       console.error(e);
       return null;
@@ -8087,12 +8087,14 @@ var createServer2 = async (config) => {
         chunkIndex: z.number()
       })
     });
-    const event = reader.readJSON(schema);
-    if (!event) return null;
+    const parsed = reader.readJSON(schema);
+    if (!parsed) return null;
+    const [event, raw] = parsed;
     const chunkSize = event.payload.chunkSize;
     const bin = reader.readChunk(chunkSize);
     event.binary = bin;
-    return event;
+    raw.binary = bin;
+    return raw;
   };
   const onBinary = async (client, data) => {
     const binaryEvent = parseBinary(new Uint8Array(data));

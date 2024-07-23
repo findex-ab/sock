@@ -353,13 +353,14 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
         chunkIndex: z.number()
       })
     });
-    const event = reader.readJSON<SockEvent<FileTransaction>>(schema as any);
-    if (!event) return null;
-
+    const parsed = reader.readJSON<SockEvent<FileTransaction>>(schema as any);
+    if (!parsed) return null;
+    const [event, raw] = parsed;
     const chunkSize = event.payload.chunkSize;
     const bin = reader.readChunk(chunkSize);
     event.binary = bin;
-    return event;
+    raw.binary = bin;
+    return raw;
   }
 
   const onBinary = async (client: ISocket, data: RawData) => {

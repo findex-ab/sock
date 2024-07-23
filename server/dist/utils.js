@@ -70,9 +70,9 @@ var BinaryReader = (data) => {
       if (!decoded.startsWith("{")) return null;
       const obj = JSON.parse(decoded);
       if (parser) {
-        return parser.parse(obj);
+        return [parser.parse(obj), obj];
       }
-      return obj;
+      return [obj, obj];
     } catch (e) {
       console.error(e);
       return null;
