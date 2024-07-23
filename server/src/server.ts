@@ -5,7 +5,7 @@ import {
   subscriptionProxy,
 } from "../../shared/src/proxy";
 import WebSocket, { RawData, WebSocketServer } from "ws";
-import { ESockEvent, SockEvent, isSockEvent } from "../../shared/src/event";
+import { ESockEvent, FileTransaction, SockEvent, isSockEvent } from "../../shared/src/event";
 import { Dict } from "../../shared/src/types/dict";
 import { SockClientAuth } from "./auth";
 import { UIDGenerator } from "../../shared/src/utils/hash";
@@ -15,6 +15,9 @@ import { SockApp, SockAppInternal } from "./app";
 import { SetStateFun, UseStateOptions } from "./state";
 import { SockCompleteTransaction, SockTransaction } from "./transaction";
 import { serverTick } from "./tick";
+import { range } from "#/shared/utils/array";
+import { BinaryReader } from "./utils/binary";
+import z from 'zod';
 
 const DEFAULT_TICK_RATE = 1000;
 
@@ -62,16 +65,25 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
   });
 
   const states: Record<string, SubscriptionProxy<any>> = {};
+  const stateTransformers: Record<string, (x: any) => any> = {};
   const getAppStateKey = (appName: string, client?: ISocket) =>
     client ? `${appName}-${client.id}` : appName;
+
+  const getTransformer = (appName: string, client?: ISocket) => {
+    return stateTransformers[getAppStateKey(appName, client)] || ((x: any) => x);
+  }
   const getAppState = (appName: string, client?: ISocket) =>
     states[getAppStateKey(appName, client)];
 
   const sendAppStateUpdate = (appName: string, client: ISocket) => {
+    const transform = getTransformer(appName, client);
+    const appstate = getAppState(appName, client)?.state || getAppState(appName)?.state;
+    if (!appstate) return;
+    
     const stateEvent: SockEvent = {
             type: ESockEvent.STATE_UPDATE,
             app: appName,
-            payload: getAppState(appName, client)?.state || getAppState(appName)?.state
+            payload: transform(appstate)
           }
 
     client.send(stateEvent);
@@ -96,7 +108,9 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
 
         const transform = options?.transform
           ? options.transform
-          : (data: T) => data;
+                        : (data: T) => data;
+
+        stateTransformers[stateKey] = transform;
 
         if (stateClient && !states[stateKey]) {
           stateClient.send({
@@ -209,7 +223,15 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
 
     if (event.type !== ESockEvent.SUBSCRIBE_APP && event.type !== ESockEvent.UNSUBSCRIBE_APP && event.app && client.apps.includes(event.app) === false) {
       client.addApp(event.app);
-      client.send(event);
+      client.send({
+        ...event,
+        type: ESockEvent.SUBSCRIBE_APP,
+        app: event.app,
+        payload: {
+          app: event.app,
+          name: event.app
+        }
+      });
       sendAppStateUpdate(event.app, client);
     }
 
@@ -292,6 +314,14 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     await app.onTransfer(client, transaction);
   };
 
+  const onFileTransaction = async (client: ISocket, event: SockEvent<FileTransaction>) => {
+    const appName = event.app;
+    if (!appName) return;
+    const app = state.apps[appName];
+    if (!app || !client.apps.includes(appName)) return;
+    await app.onEvent(client, event);
+  };
+
   const onCompleteTransaction = async (
     client: ISocket,
     transaction: SockCompleteTransaction,
@@ -305,7 +335,38 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     await app.onCompleteTransaction(client, transaction);
   };
 
+  const parseBinary = (data: Uint8Array): SockEvent<FileTransaction> | null => {
+    const buf = Buffer.from(data).buffer;
+    const view = new DataView(buf);
+    if (view.byteLength <= 0) return null;
+
+    const reader = BinaryReader(data);
+    const schema = z.object<any>({
+      type: z.string(),
+      app: z.string().optional(),
+      payload: z.object({
+        name: z.string().min(1),
+        progress: z.number(),
+        finished: z.boolean(),
+        totalSize: z.number(),
+        chunkSize: z.number().min(1),
+        chunkIndex: z.number()
+      })
+    });
+    const event = reader.readJSON<SockEvent<FileTransaction>>(schema as any);
+    if (!event) return null;
+
+    const chunkSize = event.payload.chunkSize;
+    const bin = reader.readChunk(chunkSize);
+    event.binary = bin;
+    return event;
+  }
+
   const onBinary = async (client: ISocket, data: RawData) => {
+    const binaryEvent = parseBinary(new Uint8Array(data as any));
+    if (binaryEvent) {
+      await onFileTransaction(client, binaryEvent);
+    } 
     if (!client.transaction) return;
     client.transfer(new Uint8Array(data as any));
     await onTransfer(client, client.transaction);

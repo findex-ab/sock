@@ -1,5 +1,5 @@
 // src/proxy/index.ts
-var copyObject = (obj) => JSON.parse(JSON.stringify(obj));
+var copyObject = (obj) => obj;
 var proxy = (initial, args) => {
   return new Proxy(initial, {
     get(target, p, receiver) {

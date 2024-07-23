@@ -8,6 +8,8 @@ export enum ESockEvent {
   BEGIN_TRANSACTION = 'BEGIN_TRANSACTION',
   END_TRANSACTION = 'END_TRANSACTION',
   TRANSFER_RECEIVED = 'TRANSFER_RECEIVED',
+  FILE_TRANSACTION = 'FILE_TRANSACTION',
+  FILE_TRANSACTION_COMPLETE = 'FILE_TRANSACTION_COMPLETE',
   STATE_UPDATE = "STATE_UPDATE",
   PULL = 'PULL',
   SUBSCRIBE = "SUBSCRIBE",
@@ -34,6 +36,15 @@ export type SockPayloadByteChunk = {
   index: number;
   chunk: number[];
   done?: boolean;
+}
+
+export type FileTransaction = {
+  name: string;
+  progress: number;
+  finished: boolean;
+  totalSize: number;
+  chunkSize: number;
+  chunkIndex: number;
 }
 
 export const isSockEvent = <T extends Dict = Dict>(x: any): x is SockEvent<T> => {

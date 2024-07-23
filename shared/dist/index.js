@@ -34,7 +34,7 @@ __export(src_exports, {
 module.exports = __toCommonJS(src_exports);
 
 // src/proxy/index.ts
-var copyObject = (obj) => JSON.parse(JSON.stringify(obj));
+var copyObject = (obj) => obj;
 var proxy = (initial, args) => {
   return new Proxy(initial, {
     get(target, p, receiver) {
@@ -123,6 +123,8 @@ var ESockEvent = /* @__PURE__ */ ((ESockEvent2) => {
   ESockEvent2["BEGIN_TRANSACTION"] = "BEGIN_TRANSACTION";
   ESockEvent2["END_TRANSACTION"] = "END_TRANSACTION";
   ESockEvent2["TRANSFER_RECEIVED"] = "TRANSFER_RECEIVED";
+  ESockEvent2["FILE_TRANSACTION"] = "FILE_TRANSACTION";
+  ESockEvent2["FILE_TRANSACTION_COMPLETE"] = "FILE_TRANSACTION_COMPLETE";
   ESockEvent2["STATE_UPDATE"] = "STATE_UPDATE";
   ESockEvent2["PULL"] = "PULL";
   ESockEvent2["SUBSCRIBE"] = "SUBSCRIBE";

@@ -1,8 +1,7 @@
 import { type Dict } from '../types/dict';
 
 
-const copyObject = <T extends Dict = Dict>(obj: T): T =>
-  JSON.parse(JSON.stringify(obj));
+const copyObject = <T extends Dict = Dict>(obj: T): T => obj;
 
 export type ProxySubscriberMethods<T extends Dict = Dict> = {
   get?: (target: T, p: keyof T, receiver: any) => any;
