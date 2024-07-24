@@ -11,13 +11,13 @@ export class Socket {
   connectedAt: Date;
   id: string;
   ip?: string;
-  connectionRequest: IncomingMessage;
+  connectionRequest?: IncomingMessage;
   auth?: SockClientAuth;
   apps: string[];
   transactions: Record<string, SockTransaction>;
   transaction?: SockTransaction;
 
-  constructor(socket: WebSocket | string, id: string, connectionRequest: IncomingMessage) {
+  constructor(socket: WebSocket | string, id: string, connectionRequest?: IncomingMessage) {
     if (typeof socket === 'string') {
       this.socket = new WebSocket(socket);
     } else {
@@ -132,6 +132,7 @@ export class Socket {
 
   getIP() {
     if (this.ip) return this.ip;
+    if (!this.connectionRequest) return '';
     const a = this.connectionRequest.headers['x-forwarded-for'];
     if (typeof a === 'string') return a;
     if (Array.isArray(a) && a.length >= 1 && typeof a[0] === 'string') return a[0];

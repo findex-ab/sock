@@ -9,12 +9,12 @@ export declare class Socket {
     connectedAt: Date;
     id: string;
     ip?: string;
-    connectionRequest: IncomingMessage;
+    connectionRequest?: IncomingMessage;
     auth?: SockClientAuth;
     apps: string[];
     transactions: Record<string, SockTransaction>;
     transaction?: SockTransaction;
-    constructor(socket: WebSocket | string, id: string, connectionRequest: IncomingMessage);
+    constructor(socket: WebSocket | string, id: string, connectionRequest?: IncomingMessage);
     getTimeAliveSeconds(): number;
     beginTransaction(event: SockEvent): void;
     endTransaction(event: SockEvent): void;

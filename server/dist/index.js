@@ -3661,6 +3661,7 @@ var Socket = class {
   }
   getIP() {
     if (this.ip) return this.ip;
+    if (!this.connectionRequest) return "";
     const a = this.connectionRequest.headers["x-forwarded-for"];
     if (typeof a === "string") return a;
     if (Array.isArray(a) && a.length >= 1 && typeof a[0] === "string") return a[0];
