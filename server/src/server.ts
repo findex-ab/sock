@@ -90,6 +90,8 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
   }
 
   const deleteAppState = (appName: string, client: ISocket) => {
+    const app = state.apps[appName];
+    if (!app || app.persist) return;
     const key = getAppStateKey(appName, client);
     if (states[key]) {
       console.log(`Deleting app state ${key}`);
@@ -207,7 +209,7 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
     }
 
     if (event.broadcast && event.app) {
-      const clients = state.clients.filter((it) => it.apps.includes(event.app));
+      const clients = state.clients.filter((it) => it.apps.includes(event.app) && it.id !== client.id);
       const app = state.apps[event.app];
       if (!app) {
         console.error(`No such app ${event.app}`);

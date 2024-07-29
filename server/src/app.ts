@@ -25,6 +25,7 @@ export type SockApp = {
   onSubscribe: (client: ISocket, event: SockEvent) => (void | Promise<void>);
   onUnsubscribe: (client: ISocket, event: SockEvent) => (void | Promise<void>);
   events: Record<string, EventSlot<any>>;
+  persist: boolean;
 }
 
 export type SockAppConfig = Partial<SockApp>;
@@ -164,7 +165,8 @@ export const sockApp = (init: SockAppInit): SockAppInternal => {
       onEvent,
       onAnyEvent,
       onSubscribe,
-      onUnsubscribe
+      onUnsubscribe,
+      persist: cfg.persist ?? false
     }
   }
 }

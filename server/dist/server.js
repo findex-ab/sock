@@ -7859,6 +7859,8 @@ var createServer2 = async (config) => {
     client.send(stateEvent);
   };
   const deleteAppState = (appName, client) => {
+    const app = state.apps[appName];
+    if (!app || app.persist) return;
     const key = getAppStateKey(appName, client);
     if (states[key]) {
       console.log(`Deleting app state ${key}`);
@@ -7956,7 +7958,7 @@ var createServer2 = async (config) => {
       await onEvent(receiver, event);
     }
     if (event.broadcast && event.app) {
-      const clients = state.clients.filter((it) => it.apps.includes(event.app));
+      const clients = state.clients.filter((it) => it.apps.includes(event.app) && it.id !== client.id);
       const app = state.apps[event.app];
       if (!app) {
         console.error(`No such app ${event.app}`);

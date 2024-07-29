@@ -134,7 +134,8 @@ var sockApp = (init) => {
       onEvent,
       onAnyEvent,
       onSubscribe,
-      onUnsubscribe
+      onUnsubscribe,
+      persist: cfg.persist ?? false
     };
   };
 };
