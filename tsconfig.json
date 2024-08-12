@@ -9,6 +9,7 @@
     "inlineSourceMap": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "preserveConstEnums": true,
     "resolveJsonModule": true,
     "strict": false,
     "traceResolution": false,

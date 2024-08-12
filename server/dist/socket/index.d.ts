@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { WebSocket } from "ws";
 import { SockEvent } from "../../../shared/src/event";
 import { SockClientAuth } from "../auth";

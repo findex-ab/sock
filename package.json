@@ -1,6 +1,6 @@
 {
   "name": "sock",
-  "version": "3.0.7",
+  "version": "3.0.8",
   "description": "",
   "exports": {
     "./shared": {
@@ -22,10 +22,18 @@
       }
     },
     "./server": {
-      "types": "./server/src/index.ts",
-      "import": "./server/src/index.ts",
-      "default": "./server/dist/index.js",
-      "require": "./server/dist/index.js"
+      "import": {
+        "types": "./server/src/index.ts",
+        "default": "./server/dist/index.js"
+      },
+      "require": {
+        "types": "./server/src/index.ts",
+        "default": "./server/dist/index.js"
+      },
+      "default": {
+        "types": "./server/src/index.ts",
+        "default": "./server/dist/index.js"
+      }
     },
     "./web": {
       "import": {
