@@ -5,25 +5,10 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "module": "dist/index.js",
-  "exports": {
-    ".": {
-      "default": {
-        "types": "./neutral/index.d.ts",
-        "default": "./neutral/index.js"
-      },
-      "node": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    }
-  },
   "scripts": {
     "build": "npm run build:node && npm run build:neutral",
-    "build:node": "tsc -p tsconfig.json --emitDeclarationOnly --outDir ./dist && esbuild ./src/** --outdir=./dist --bundle --platform=node --target=node18",
+    "build:node": "tsc -p tsconfig.json",
+    "build:_node_": "tsc -p tsconfig.json --emitDeclarationOnly --outDir ./dist && esbuild ./src/** --outdir=./dist --bundle --platform=node --target=node18",
     "build:neutral": "tsc -p tsconfig.json --emitDeclarationOnly --outDir ./neutral && esbuild ./src/** --outdir=./neutral --bundle --platform=neutral --target=node18"
   },
   "tsup": {

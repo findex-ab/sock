@@ -1,59 +1,36 @@
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseEvent = exports.isSockEvent = exports.ESockEvent = void 0;
+var ESockEvent;
+(function (ESockEvent) {
+    ESockEvent["PING"] = "PING";
+    ESockEvent["PONG"] = "PONG";
+    ESockEvent["AUTH"] = "AUTH";
+    ESockEvent["CLOSE"] = "CLOSE";
+    ESockEvent["BEGIN_TRANSACTION"] = "BEGIN_TRANSACTION";
+    ESockEvent["END_TRANSACTION"] = "END_TRANSACTION";
+    ESockEvent["TRANSFER_RECEIVED"] = "TRANSFER_RECEIVED";
+    ESockEvent["FILE_TRANSACTION"] = "FILE_TRANSACTION";
+    ESockEvent["FILE_TRANSACTION_COMPLETE"] = "FILE_TRANSACTION_COMPLETE";
+    ESockEvent["STATE_UPDATE"] = "STATE_UPDATE";
+    ESockEvent["PULL"] = "PULL";
+    ESockEvent["SUBSCRIBE"] = "SUBSCRIBE";
+    ESockEvent["SUBSCRIBE_APP"] = "SUBSCRIBE_APP";
+    ESockEvent["UNSUBSCRIBE_APP"] = "UNSUBSCRIBE_APP";
+})(ESockEvent || (exports.ESockEvent = ESockEvent = {}));
+const isSockEvent = (x) => {
+    if (!x)
+        return false;
+    if (typeof x !== 'object')
+        return false;
+    return (typeof x.type === 'string' && typeof x.payload === 'object');
 };
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
+exports.isSockEvent = isSockEvent;
+const parseEvent = (data) => {
+    const parsed = JSON.parse(data.toString());
+    if (!(0, exports.isSockEvent)(parsed))
+        throw new Error(`Malformed event`);
+    return parsed;
 };
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// src/event.ts
-var event_exports = {};
-__export(event_exports, {
-  ESockEvent: () => ESockEvent,
-  isSockEvent: () => isSockEvent,
-  parseEvent: () => parseEvent
-});
-module.exports = __toCommonJS(event_exports);
-var ESockEvent = /* @__PURE__ */ ((ESockEvent2) => {
-  ESockEvent2["PING"] = "PING";
-  ESockEvent2["PONG"] = "PONG";
-  ESockEvent2["AUTH"] = "AUTH";
-  ESockEvent2["CLOSE"] = "CLOSE";
-  ESockEvent2["BEGIN_TRANSACTION"] = "BEGIN_TRANSACTION";
-  ESockEvent2["END_TRANSACTION"] = "END_TRANSACTION";
-  ESockEvent2["TRANSFER_RECEIVED"] = "TRANSFER_RECEIVED";
-  ESockEvent2["FILE_TRANSACTION"] = "FILE_TRANSACTION";
-  ESockEvent2["FILE_TRANSACTION_COMPLETE"] = "FILE_TRANSACTION_COMPLETE";
-  ESockEvent2["STATE_UPDATE"] = "STATE_UPDATE";
-  ESockEvent2["PULL"] = "PULL";
-  ESockEvent2["SUBSCRIBE"] = "SUBSCRIBE";
-  ESockEvent2["SUBSCRIBE_APP"] = "SUBSCRIBE_APP";
-  ESockEvent2["UNSUBSCRIBE_APP"] = "UNSUBSCRIBE_APP";
-  return ESockEvent2;
-})(ESockEvent || {});
-var isSockEvent = (x) => {
-  if (!x) return false;
-  if (typeof x !== "object") return false;
-  return typeof x.type === "string" && typeof x.payload === "object";
-};
-var parseEvent = (data) => {
-  const parsed = JSON.parse(data.toString());
-  if (!isSockEvent(parsed)) throw new Error(`Malformed event`);
-  return parsed;
-};
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  ESockEvent,
-  isSockEvent,
-  parseEvent
-});
+exports.parseEvent = parseEvent;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZXZlbnQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvZXZlbnQudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBRUEsSUFBWSxVQWVYO0FBZkQsV0FBWSxVQUFVO0lBQ3BCLDJCQUFhLENBQUE7SUFDYiwyQkFBYSxDQUFBO0lBQ2IsMkJBQWEsQ0FBQTtJQUNiLDZCQUFlLENBQUE7SUFDZixxREFBdUMsQ0FBQTtJQUN2QyxpREFBbUMsQ0FBQTtJQUNuQyxxREFBdUMsQ0FBQTtJQUN2QyxtREFBcUMsQ0FBQTtJQUNyQyxxRUFBdUQsQ0FBQTtJQUN2RCwyQ0FBNkIsQ0FBQTtJQUM3QiwyQkFBYSxDQUFBO0lBQ2IscUNBQXVCLENBQUE7SUFDdkIsNkNBQStCLENBQUE7SUFDL0IsaURBQW1DLENBQUE7QUFDckMsQ0FBQyxFQWZXLFVBQVUsMEJBQVYsVUFBVSxRQWVyQjtBQWdDTSxNQUFNLFdBQVcsR0FBRyxDQUF3QixDQUFNLEVBQXFCLEVBQUU7SUFDOUUsSUFBSSxDQUFDLENBQUM7UUFBRSxPQUFPLEtBQUssQ0FBQztJQUNyQixJQUFJLE9BQU8sQ0FBQyxLQUFLLFFBQVE7UUFBRSxPQUFPLEtBQUssQ0FBQztJQUN4QyxPQUFPLENBQUMsT0FBTyxDQUFDLENBQUMsSUFBSSxLQUFLLFFBQVEsSUFBSSxPQUFPLENBQUMsQ0FBQyxPQUFPLEtBQUssUUFBUSxDQUFDLENBQUM7QUFDdkUsQ0FBQyxDQUFBO0FBSlksUUFBQSxXQUFXLGVBSXZCO0FBRU0sTUFBTSxVQUFVLEdBQUcsQ0FBd0IsSUFBZ0MsRUFBZ0IsRUFBRTtJQUNsRyxNQUFNLE1BQU0sR0FBRyxJQUFJLENBQUMsS0FBSyxDQUFDLElBQUksQ0FBQyxRQUFRLEVBQUUsQ0FBQyxDQUFDO0lBQzNDLElBQUksQ0FBQyxJQUFBLG1CQUFXLEVBQUksTUFBTSxDQUFDO1FBQUUsTUFBTSxJQUFJLEtBQUssQ0FBQyxpQkFBaUIsQ0FBQyxDQUFDO0lBQ2hFLE9BQU8sTUFBTSxDQUFDO0FBQ2hCLENBQUMsQ0FBQTtBQUpZLFFBQUEsVUFBVSxjQUl0QiJ9

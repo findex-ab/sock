@@ -2,10 +2,11 @@
   "extends": "../tsconfig",
   "compilerOptions": {
     "target": "esnext",
-    "outDir": "dist",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "esModuleInterop": true,
     "composite": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*"],
   "references": []
 }
