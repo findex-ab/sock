@@ -14,6 +14,7 @@ var ESockEvent = /* @__PURE__ */ ((ESockEvent2) => {
   ESockEvent2["SUBSCRIBE"] = "SUBSCRIBE";
   ESockEvent2["SUBSCRIBE_APP"] = "SUBSCRIBE_APP";
   ESockEvent2["UNSUBSCRIBE_APP"] = "UNSUBSCRIBE_APP";
+  ESockEvent2["CLEANUP_APP"] = "CLEANUP_APP";
   return ESockEvent2;
 })(ESockEvent || {});
 var isSockEvent = (x) => {

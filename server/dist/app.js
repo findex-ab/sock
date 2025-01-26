@@ -49,6 +49,15 @@ var sockApp = (init) => {
         }
       }
     };
+    const onCleanup = async (client, event) => {
+      if (cfg.onCleanup) {
+        try {
+          await cfg.onCleanup(client, event);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
     const onSubscribe = async (client, event) => {
       if (cfg.onSubscribe) {
         try {
@@ -135,6 +144,7 @@ var sockApp = (init) => {
       onAnyEvent,
       onSubscribe,
       onUnsubscribe,
+      onCleanup,
       persist: cfg.persist ?? false
     };
   };

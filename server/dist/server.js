@@ -7860,7 +7860,15 @@ var createServer2 = async (config) => {
   };
   const deleteAppState = (appName, client) => {
     const app = state.apps[appName];
-    if (!app || app.persist) return;
+    if (!app) return;
+    if (app.onCleanup) {
+      app.onCleanup(client, {
+        type: "CLEANUP_APP" /* CLEANUP_APP */,
+        app: appName,
+        payload: {}
+      });
+    }
+    if (app.persist) return;
     const key = getAppStateKey(appName, client);
     if (states[key]) {
       console.log(`Deleting app state ${key}`);

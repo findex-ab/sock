@@ -3696,6 +3696,15 @@ var sockApp = (init) => {
         }
       }
     };
+    const onCleanup = async (client, event) => {
+      if (cfg.onCleanup) {
+        try {
+          await cfg.onCleanup(client, event);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
     const onSubscribe = async (client, event) => {
       if (cfg.onSubscribe) {
         try {
@@ -3782,6 +3791,7 @@ var sockApp = (init) => {
       onAnyEvent,
       onSubscribe,
       onUnsubscribe,
+      onCleanup,
       persist: cfg.persist ?? false
     };
   };
@@ -7981,7 +7991,15 @@ var createServer2 = async (config) => {
   };
   const deleteAppState = (appName, client) => {
     const app = state.apps[appName];
-    if (!app || app.persist) return;
+    if (!app) return;
+    if (app.onCleanup) {
+      app.onCleanup(client, {
+        type: "CLEANUP_APP" /* CLEANUP_APP */,
+        app: appName,
+        payload: {}
+      });
+    }
+    if (app.persist) return;
     const key = getAppStateKey(appName, client);
     if (states[key]) {
       console.log(`Deleting app state ${key}`);

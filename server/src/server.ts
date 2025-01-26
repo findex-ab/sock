@@ -91,7 +91,18 @@ const createServer = async <AuthenticationEventType extends Dict = Dict>(
 
   const deleteAppState = (appName: string, client: ISocket) => {
     const app = state.apps[appName];
-    if (!app || app.persist) return;
+    if (!app) return;
+
+    if (app.onCleanup) {
+      app.onCleanup(client, {
+        type: ESockEvent.CLEANUP_APP,
+        app: appName,
+        payload: {}
+      });
+    }
+
+    if (app.persist) return;
+    
     const key = getAppStateKey(appName, client);
     if (states[key]) {
       console.log(`Deleting app state ${key}`);

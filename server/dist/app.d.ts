@@ -19,6 +19,7 @@ export type SockApp = {
     onAnyEvent: (client: ISocket, event: SockEvent) => (void | Promise<void>);
     onSubscribe: (client: ISocket, event: SockEvent) => (void | Promise<void>);
     onUnsubscribe: (client: ISocket, event: SockEvent) => (void | Promise<void>);
+    onCleanup: (client: ISocket, event: SockEvent) => (void | Promise<void>);
     events: Record<string, EventSlot<any>>;
     persist: boolean;
 };

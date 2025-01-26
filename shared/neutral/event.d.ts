@@ -13,7 +13,8 @@ export declare enum ESockEvent {
     PULL = "PULL",
     SUBSCRIBE = "SUBSCRIBE",
     SUBSCRIBE_APP = "SUBSCRIBE_APP",
-    UNSUBSCRIBE_APP = "UNSUBSCRIBE_APP"
+    UNSUBSCRIBE_APP = "UNSUBSCRIBE_APP",
+    CLEANUP_APP = "CLEANUP_APP"
 }
 export type SockEvent<T extends Dict = Dict> = {
     type: string;

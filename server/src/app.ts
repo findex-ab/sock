@@ -24,6 +24,7 @@ export type SockApp = {
   onAnyEvent: (client: ISocket, event: SockEvent) => (void | Promise<void>)
   onSubscribe: (client: ISocket, event: SockEvent) => (void | Promise<void>);
   onUnsubscribe: (client: ISocket, event: SockEvent) => (void | Promise<void>);
+  onCleanup: (client: ISocket, event: SockEvent) => (void | Promise<void>);
   events: Record<string, EventSlot<any>>;
   persist: boolean;
 }
@@ -60,6 +61,16 @@ export const sockApp = (init: SockAppInit): SockAppInternal => {
       if (cfg.onCompleteTransaction) {
         try {
           await cfg.onCompleteTransaction(client, transaction);
+        } catch (e) {
+          console.error(e)
+        }
+      }
+    }
+
+    const onCleanup = async (client: ISocket, event: SockEvent) => {
+      if (cfg.onCleanup) {
+        try {
+          await cfg.onCleanup(client, event);
         } catch (e) {
           console.error(e)
         }
@@ -166,6 +177,7 @@ export const sockApp = (init: SockAppInit): SockAppInternal => {
       onAnyEvent,
       onSubscribe,
       onUnsubscribe,
+      onCleanup,
       persist: cfg.persist ?? false
     }
   }
